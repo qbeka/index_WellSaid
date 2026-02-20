@@ -9,12 +9,16 @@ import {
   FileText,
   Calendar,
   MessageSquare,
+  MessageCircle,
   FolderOpen,
+  ScanLine,
+  Languages,
   LogOut,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 
 type SidebarProps = {
   open: boolean;
@@ -23,11 +27,14 @@ type SidebarProps = {
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/action-items", label: "Action Items", icon: ListChecks },
+  { href: "/conversation", label: "Conversation", icon: MessageCircle },
+  { href: "/translate", label: "Translate", icon: Languages },
   { href: "/health-notes", label: "Health Notes", icon: FileText },
   { href: "/appointments", label: "Appointments", icon: Calendar },
-  { href: "/sessions", label: "Sessions", icon: MessageSquare },
+  { href: "/sessions", label: "Past Sessions", icon: MessageSquare },
   { href: "/documents", label: "Documents", icon: FolderOpen },
+  { href: "/scan-documents", label: "Scan Documents", icon: ScanLine },
+  { href: "/action-items", label: "Action Items", icon: ListChecks },
 ] as const;
 
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
@@ -61,23 +68,27 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   return (
     <>
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-      )}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <aside
+      <motion.aside
+        initial={{ x: "-100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "-100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
         role="dialog"
         aria-modal={open}
         aria-label="Navigation menu"
-        className={`fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-xl transition-transform duration-200 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-xl"
       >
-        <div className="flex h-16 items-center justify-between border-b border-[var(--color-border)] px-5">
+        <div className="flex h-14 items-center justify-between border-b border-[var(--color-border)] px-5">
           <span className="text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
             WellSaid
           </span>
@@ -93,10 +104,15 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="flex flex-col gap-1">
-            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            {NAV_ITEMS.map(({ href, label, icon: Icon }, i) => {
               const isActive = pathname === href;
               return (
-                <li key={href}>
+                <motion.li
+                  key={href}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.2 }}
+                >
                   <Link
                     href={href}
                     onClick={onClose}
@@ -112,7 +128,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                     <Icon size={18} aria-hidden="true" />
                     {label}
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
           </ul>
@@ -129,7 +145,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
             Sign out
           </button>
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 };

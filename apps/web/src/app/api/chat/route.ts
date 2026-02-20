@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 30;
@@ -34,89 +34,100 @@ VISIT SESSIONS:
 ${sessions || "No visit sessions recorded yet."}`;
 
 export const POST = async (req: Request) => {
-  const { messages } = await req.json();
-  const supabase = await createClient();
+  try {
+    const { messages } = (await req.json()) as { messages: UIMessage[] };
+    const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
+    if (!user) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const [profileRes, notesRes, appointmentsRes, documentsRes, sessionsRes] =
+      await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase
+          .from("health_notes")
+          .select("title, content, action_items, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("appointments")
+          .select("title, provider_name, location, date, time, status, notes")
+          .eq("user_id", user.id)
+          .order("date", { ascending: true })
+          .limit(20),
+        supabase
+          .from("documents")
+          .select("title, summary, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+        supabase
+          .from("sessions")
+          .select("title, summary, key_topics, action_items, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+
+    const profile = profileRes.data;
+    const userName = profile
+      ? `${profile.first_name} ${profile.last_name}`
+      : "User";
+
+    const languageMap: Record<string, string> = {
+      en: "English",
+      es: "Spanish",
+      zh: "Mandarin Chinese",
+      yue: "Cantonese",
+      ko: "Korean",
+      ja: "Japanese",
+      vi: "Vietnamese",
+      tl: "Tagalog",
+      ar: "Arabic",
+      pt: "Portuguese",
+      sq: "Albanian",
+      fr: "French",
+      hi: "Hindi",
+      ru: "Russian",
+    };
+
+    const language =
+      languageMap[profile?.preferred_language ?? "en"] ?? "English";
+
+    const formatItems = (items: Record<string, unknown>[] | null) => {
+      if (!items || items.length === 0) return "";
+      return items.map((item) => JSON.stringify(item)).join("\n");
+    };
+
+    const systemPrompt = buildSystemPrompt(
+      userName,
+      language,
+      formatItems(notesRes.data as Record<string, unknown>[] | null),
+      formatItems(appointmentsRes.data as Record<string, unknown>[] | null),
+      formatItems(documentsRes.data as Record<string, unknown>[] | null),
+      formatItems(sessionsRes.data as Record<string, unknown>[] | null)
+    );
+
+    const modelMessages = await convertToModelMessages(messages);
+
+    const result = streamText({
+      model: openai("gpt-4o-mini"),
+      system: systemPrompt,
+      messages: modelMessages,
+    });
+
+    return result.toUIMessageStreamResponse();
+  } catch (e) {
+    console.error("[chat] Error:", e);
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
-
-  const [profileRes, notesRes, appointmentsRes, documentsRes, sessionsRes] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase
-        .from("health_notes")
-        .select("title, content, action_items, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("appointments")
-        .select("title, provider_name, location, date, time, status, notes")
-        .eq("user_id", user.id)
-        .order("date", { ascending: true })
-        .limit(20),
-      supabase
-        .from("documents")
-        .select("title, summary, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabase
-        .from("sessions")
-        .select("title, summary, key_topics, action_items, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(10),
-    ]);
-
-  const profile = profileRes.data;
-  const userName = profile
-    ? `${profile.first_name} ${profile.last_name}`
-    : "User";
-
-  const languageMap: Record<string, string> = {
-    en: "English",
-    es: "Spanish",
-    zh: "Mandarin Chinese",
-    yue: "Cantonese",
-    ko: "Korean",
-    ja: "Japanese",
-    vi: "Vietnamese",
-    tl: "Tagalog",
-    ar: "Arabic",
-    pt: "Portuguese",
-    sq: "Albanian",
-    fr: "French",
-    hi: "Hindi",
-    ru: "Russian",
-  };
-
-  const language = languageMap[profile?.preferred_language ?? "en"] ?? "English";
-
-  const formatItems = (items: Record<string, unknown>[] | null) => {
-    if (!items || items.length === 0) return "";
-    return items.map((item) => JSON.stringify(item)).join("\n");
-  };
-
-  const systemPrompt = buildSystemPrompt(
-    userName,
-    language,
-    formatItems(notesRes.data as Record<string, unknown>[] | null),
-    formatItems(appointmentsRes.data as Record<string, unknown>[] | null),
-    formatItems(documentsRes.data as Record<string, unknown>[] | null),
-    formatItems(sessionsRes.data as Record<string, unknown>[] | null)
-  );
-
-  const result = streamText({
-    model: openai("gpt-4o-mini"),
-    system: systemPrompt,
-    messages,
-  });
-
-  return result.toUIMessageStreamResponse();
 };

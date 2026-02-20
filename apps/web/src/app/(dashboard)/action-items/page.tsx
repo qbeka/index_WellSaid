@@ -63,7 +63,7 @@ const ActionItemsPage = async () => {
     sessionItems = sessions.flatMap((session) =>
       (session.action_items ?? []).map((item) => ({
         source: session.title,
-        sourceId: `/sessions`,
+        sourceId: `/sessions/${session.id}`,
         item,
         date: session.created_at,
       }))
