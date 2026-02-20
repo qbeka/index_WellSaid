@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -8,7 +9,6 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-  Mic,
   FolderOpen,
   LogOut,
   X,
@@ -27,13 +27,31 @@ const NAV_ITEMS = [
   { href: "/health-notes", label: "Health Notes", icon: FileText },
   { href: "/appointments", label: "Appointments", icon: Calendar },
   { href: "/sessions", label: "Sessions", icon: MessageSquare },
-  { href: "/visit-flow", label: "Visit Flow", icon: Mic },
   { href: "/documents", label: "Documents", icon: FolderOpen },
 ] as const;
 
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -45,14 +63,17 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
     <>
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/30"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-lg transition-transform duration-200 ${
+        role="dialog"
+        aria-modal={open}
+        aria-label="Navigation menu"
+        className={`fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-xl transition-transform duration-200 ease-out ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -80,6 +101,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                     href={href}
                     onClick={onClose}
                     aria-label={label}
+                    aria-current={isActive ? "page" : undefined}
                     tabIndex={0}
                     className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${
                       isActive

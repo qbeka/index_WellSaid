@@ -1,0 +1,94 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+
+export const getHealthNotes = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("health_notes")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return data ?? [];
+};
+
+export const getHealthNote = async (id: string) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("health_notes")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  return data;
+};
+
+export const deleteHealthNote = async (id: string) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("health_notes")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/health-notes");
+  revalidatePath("/action-items");
+  return { success: true };
+};
+
+export const getUserLanguage = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return "English";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("preferred_language")
+    .eq("id", user.id)
+    .single();
+
+  const languageMap: Record<string, string> = {
+    en: "English",
+    es: "Spanish",
+    zh: "Mandarin Chinese",
+    yue: "Cantonese",
+    ko: "Korean",
+    ja: "Japanese",
+    vi: "Vietnamese",
+    tl: "Tagalog",
+    ar: "Arabic",
+    pt: "Portuguese",
+    sq: "Albanian",
+    fr: "French",
+    hi: "Hindi",
+    ru: "Russian",
+  };
+
+  return languageMap[profile?.preferred_language ?? "en"] ?? "English";
+};

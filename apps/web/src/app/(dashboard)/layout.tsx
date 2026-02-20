@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           className="flex h-10 items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 text-sm font-medium text-[var(--color-accent-foreground)] transition-opacity hover:opacity-90"
         >
           <Stethoscope size={16} aria-hidden="true" />
-          <span className="hidden sm:inline">I&apos;m at a doctor&apos;s visit</span>
+          Doctor&apos;s visit
         </Link>
       </header>
 

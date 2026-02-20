@@ -3,10 +3,10 @@ import {
   FileText,
   Calendar,
   FolderOpen,
-  Mic,
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const QUICK_LINKS = [
   {
@@ -33,20 +33,31 @@ const QUICK_LINKS = [
     description: "Scan and review medical documents",
     icon: FolderOpen,
   },
-  {
-    href: "/visit-flow",
-    label: "Visit Flow",
-    description: "Record a doctor's visit conversation",
-    icon: Mic,
-  },
 ] as const;
 
-const DashboardPage = () => {
+const DashboardPage = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let firstName = "";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", user.id)
+      .single();
+    firstName = profile?.first_name ?? "";
+  }
+
+  const greeting = firstName ? `Welcome back, ${firstName}` : "Welcome back";
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-foreground)]">
-          Welcome back
+          {greeting}
         </h1>
         <p className="text-sm text-[var(--color-muted)]">
           What would you like to do today?
