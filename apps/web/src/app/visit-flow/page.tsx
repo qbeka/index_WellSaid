@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Mic, Square, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mic, Square, Loader2, ArrowLeft, CheckCircle, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,12 @@ const VisitFlowPage = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const router = useRouter();
+
+  const today = new Date().toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "2-digit",
+  });
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -133,110 +139,97 @@ const VisitFlowPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--color-background)]">
-      <div className="flex h-14 items-center gap-3 border-b border-[var(--color-border)] px-4">
-        {phase !== "recording" && phase !== "processing" && (
-          <Link
-            href="/dashboard"
-            aria-label="Go back"
-            tabIndex={0}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
-          >
-            <ArrowLeft size={18} />
-          </Link>
-        )}
-        <span className="text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
-          {phase === "done" ? "Visit Summary" : "Record Visit"}
+      <div className="flex h-14 items-center justify-center bg-[var(--color-surface)] px-4 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]">
+        <span className="text-[15px] font-semibold tracking-tight text-[var(--color-foreground)]">
+          Conversation
         </span>
       </div>
 
       <div className="flex flex-1 flex-col">
         <AnimatePresence mode="wait">
-          {phase === "ready" && (
+          {(phase === "ready" || phase === "recording") && (
             <motion.div
-              key="ready"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-1 flex-col items-center justify-center gap-8 px-6"
-            >
-              <div className="flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleStart}
-                  aria-label="Start recording your visit"
-                  tabIndex={0}
-                  className="flex h-32 w-32 items-center justify-center rounded-full border-2 border-[var(--color-accent)] bg-[var(--color-accent-soft)] transition-all hover:shadow-lg active:scale-95"
-                >
-                  <Mic size={48} className="text-[var(--color-accent)]" />
-                </button>
-                <h2 className="mt-2 text-xl font-semibold text-[var(--color-foreground)]">
-                  Ready to Record
-                </h2>
-                <p className="max-w-xs text-center text-sm leading-relaxed text-[var(--color-muted)]">
-                  Tap the microphone to start recording your doctor visit. Place
-                  your phone where it can hear the conversation clearly.
-                </p>
-              </div>
-
-              {error && (
-                <p className="text-center text-sm text-[var(--color-danger)]">
-                  {error}
-                </p>
-              )}
-            </motion.div>
-          )}
-
-          {phase === "recording" && (
-            <motion.div
-              key="recording"
+              key="record"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-1 flex-col"
+              className="flex flex-1 flex-col px-4"
             >
-              <div className="flex flex-col items-center gap-4 px-6 pt-10">
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-danger)]/10"
-                >
-                  <div className="h-4 w-4 rounded-full bg-[var(--color-danger)]" />
-                </motion.div>
+              <p className="py-4 text-sm text-[var(--color-foreground)]">
+                This conversation is about a doctor&apos;s visit on {today}
+              </p>
 
-                <p className="text-3xl font-semibold tabular-nums text-[var(--color-foreground)]">
-                  {formatTime(elapsed)}
-                </p>
-                <p className="text-sm text-[var(--color-muted)]">Recording in progress...</p>
-              </div>
-
-              <div className="mx-4 mt-6 flex-1 overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-                <p className="mb-2 text-xs font-medium text-[var(--color-muted)]">
-                  Live Transcript
-                </p>
-                {transcript ? (
-                  <p className="text-sm leading-relaxed text-[var(--color-foreground)]">
-                    {transcript}
-                  </p>
+              <div className="flex flex-1 flex-col rounded-2xl bg-[var(--color-background-muted)]">
+                {phase === "recording" ? (
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-xs font-medium text-[var(--color-muted)]">
+                        Recording {formatTime(elapsed)}
+                      </span>
+                      <motion.div
+                        animate={{ opacity: [1, 0.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                        className="h-2.5 w-2.5 rounded-full bg-[var(--color-danger)]"
+                      />
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                      {transcript ? (
+                        <p className="text-sm leading-relaxed text-[var(--color-foreground)]">
+                          {transcript}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-[var(--color-muted)]">
+                          Listening for speech...
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Listening for speech...
-                  </p>
+                  <div className="flex flex-1 flex-col items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={handleStart}
+                      aria-label="Start recording"
+                      tabIndex={0}
+                      className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-foreground)] text-[var(--color-background)] transition-all hover:opacity-90 active:scale-90"
+                    >
+                      <Mic size={32} />
+                    </button>
+                    <p className="text-sm text-[var(--color-muted)]">
+                      Press the button above to start recording
+                    </p>
+                    {error && (
+                      <p className="text-center text-sm text-[var(--color-danger)]">
+                        {error}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <div className="px-4 py-6">
-                <button
-                  type="button"
-                  onClick={handleStop}
-                  aria-label="Stop recording"
-                  tabIndex={0}
-                  className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
-                >
-                  <Square size={18} aria-hidden="true" />
-                  End Visit Recording
-                </button>
+              <div className="py-4">
+                {phase === "recording" ? (
+                  <button
+                    type="button"
+                    onClick={handleStop}
+                    aria-label="Stop recording"
+                    tabIndex={0}
+                    className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
+                  >
+                    <Square size={18} aria-hidden="true" />
+                    End Visit Recording
+                  </button>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    aria-label="Go back"
+                    tabIndex={0}
+                    className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
+                  >
+                    <RotateCcw size={16} aria-hidden="true" />
+                    I don&apos;t want to record, go back
+                  </Link>
+                )}
               </div>
             </motion.div>
           )}
@@ -257,8 +250,8 @@ const VisitFlowPage = () => {
                 Processing your visit
               </h2>
               <p className="max-w-xs text-center text-sm text-[var(--color-muted)]">
-                We&apos;re analyzing the conversation and creating a summary with
-                key topics and action items.
+                We&apos;re analyzing the conversation and creating a summary
+                with key topics and action items.
               </p>
             </motion.div>
           )}

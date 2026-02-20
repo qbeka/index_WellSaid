@@ -1,7 +1,6 @@
-import { Calendar, ChevronRight, MapPin, User, Clock } from "lucide-react";
+import { Calendar, ChevronRight, MapPin, User, Clock, Phone } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { getAppointments } from "./actions";
-import { CreateAppointment } from "./create-appointment";
 import Link from "next/link";
 
 const formatDate = (dateStr: string) => {
@@ -43,19 +42,16 @@ const AppointmentsPage = async () => {
   const past = appointments.filter((a) => a.status !== "upcoming");
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-          Appointments
-        </h1>
-        <CreateAppointment />
-      </div>
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-[var(--color-muted)]">
+        Your scheduled appointments, updated in real time.
+      </p>
 
       {appointments.length === 0 ? (
         <EmptyState
           icon={Calendar}
           title="No appointments yet"
-          description="Tap 'New appointment' to schedule your next doctor visit. We'll help you stay on track."
+          description="Your scheduled appointments will show up here. Schedule via the conversation or schedule flow."
         />
       ) : (
         <div className="flex flex-col gap-6">

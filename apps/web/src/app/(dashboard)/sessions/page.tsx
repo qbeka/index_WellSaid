@@ -19,26 +19,10 @@ const SessionsPage = async () => {
   const hasSessions = sessions && sessions.length > 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-            Past Sessions
-          </h1>
-          <p className="mt-1 text-sm text-[var(--color-muted)]">
-            Summaries from your recorded doctor visits
-          </p>
-        </div>
-        <Link
-          href="/visit-flow"
-          aria-label="Record a visit"
-          tabIndex={0}
-          className="flex h-10 items-center gap-2 rounded-xl bg-[var(--color-foreground)] px-4 text-sm font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.97]"
-        >
-          <Mic size={15} aria-hidden="true" />
-          Record
-        </Link>
-      </div>
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-[var(--color-muted)]">
+        Visit summaries from your appointments.
+      </p>
 
       {hasSessions ? (
         <div className="flex flex-col gap-3">
@@ -102,8 +86,8 @@ const SessionsPage = async () => {
       ) : (
         <EmptyState
           icon={MessageSquare}
-          title="No sessions yet"
-          description="Record your next doctor visit to get an AI-powered summary with key topics and action items."
+          title="No past sessions yet"
+          description="Visit summaries from your appointments will show up here after you complete a conversation and save the summary."
         />
       )}
     </div>

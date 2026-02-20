@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Home,
   ListChecks,
@@ -40,6 +41,31 @@ const NAV_ITEMS = [
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    avatarUrl: string | null;
+  }>({ name: "", avatarUrl: null });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const fullName =
+          user.user_metadata?.full_name || user.user_metadata?.name || "";
+        const avatar =
+          user.user_metadata?.avatar_url ||
+          user.user_metadata?.picture ||
+          null;
+        setUserInfo({ name: fullName, avatarUrl: avatar });
+      }
+    };
+
+    if (open) fetchUser();
+  }, [open]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,15 +114,37 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         aria-label="Navigation menu"
         className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-xl"
       >
-        <div className="flex h-14 items-center justify-between border-b border-[var(--color-border)] px-5">
-          <span className="text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
-            WellSaid
-          </span>
+        <div className="flex h-16 items-center justify-between border-b border-[var(--color-border)] px-4">
+          <div className="flex items-center gap-3 overflow-hidden">
+            {userInfo.avatarUrl ? (
+              <Image
+                src={userInfo.avatarUrl}
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-[var(--color-accent-foreground)]">
+                {userInfo.name
+                  ? userInfo.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : "?"}
+              </div>
+            )}
+            <span className="truncate text-sm font-semibold text-[var(--color-foreground)]">
+              {userInfo.name || "Loading..."}
+            </span>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close navigation"
             tabIndex={0}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
           >
             <X size={20} />
           </button>

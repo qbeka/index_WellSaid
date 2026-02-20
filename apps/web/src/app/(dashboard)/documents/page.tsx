@@ -31,26 +31,10 @@ const DocumentsPage = async () => {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-            Documents
-          </h1>
-          <p className="mt-1 text-sm text-[var(--color-muted)]">
-            Summaries from scanned documents, updated in real time.
-          </p>
-        </div>
-        <Link
-          href="/scan-documents"
-          aria-label="Scan a document"
-          tabIndex={0}
-          className="flex h-11 items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 text-sm font-medium text-[var(--color-accent-foreground)] transition-all hover:opacity-90 active:scale-[0.97]"
-        >
-          <ScanLine size={16} aria-hidden="true" />
-          Scan
-        </Link>
-      </div>
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-[var(--color-muted)]">
+        Summaries from scanned documents, updated in real time.
+      </p>
 
       {documents.length === 0 ? (
         <EmptyState

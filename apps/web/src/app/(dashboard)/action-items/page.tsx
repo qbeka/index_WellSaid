@@ -75,16 +75,16 @@ const ActionItemsPage = async () => {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-        Action Items
-      </h1>
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-[var(--color-muted)]">
+        Follow-ups and tasks from your care team, updated in real time.
+      </p>
 
       {allItems.length === 0 ? (
         <EmptyState
           icon={ListChecks}
           title="No action items yet"
-          description="When you record a visit or create health notes, follow-up tasks will appear here automatically."
+          description="Action items from your visits will show up here so you can track follow-ups and medications."
         />
       ) : (
         <div className="flex flex-col gap-2">

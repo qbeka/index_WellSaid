@@ -16,15 +16,10 @@ const HealthNotesPage = async () => {
   const notes = await getHealthNotes();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-          Health Notes
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Your health notes from visits, updated in real time.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <p className="text-sm text-[var(--color-muted)]">
+        Your health notes from visits, updated in real time.
+      </p>
 
       {notes.length === 0 ? (
         <EmptyState
