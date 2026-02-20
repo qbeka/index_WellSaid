@@ -33,7 +33,7 @@ const SessionDetailPage = async ({ params }: Props) => {
           href="/sessions"
           aria-label="Back to sessions"
           tabIndex={0}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
         >
           <ArrowLeft size={18} />
         </Link>
@@ -49,7 +49,7 @@ const SessionDetailPage = async ({ params }: Props) => {
       </div>
 
       {session.summary && (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <h2 className="mb-2 text-sm font-semibold text-[var(--color-foreground)]">
             Summary
           </h2>
@@ -60,7 +60,7 @@ const SessionDetailPage = async ({ params }: Props) => {
       )}
 
       {topics.length > 0 && (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <h2 className="mb-3 text-sm font-semibold text-[var(--color-foreground)]">
             Key Topics
           </h2>
@@ -78,7 +78,7 @@ const SessionDetailPage = async ({ params }: Props) => {
       )}
 
       {actionItems.length > 0 && (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <h2 className="mb-3 text-sm font-semibold text-[var(--color-foreground)]">
             Action Items
           </h2>
@@ -97,7 +97,7 @@ const SessionDetailPage = async ({ params }: Props) => {
       )}
 
       {session.transcript && (
-        <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+        <details className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)]">
           <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[var(--color-foreground)]">
             <span className="ml-1 inline-flex items-center gap-2">
               <MessageSquare size={14} className="text-[var(--color-muted)]" />

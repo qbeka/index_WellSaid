@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AppointmentActions } from "./appointment-actions";
+import { EditAppointment } from "./edit-appointment";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -40,11 +41,11 @@ const statusConfig = {
   },
   completed: {
     label: "Completed",
-    className: "bg-emerald-50 text-emerald-600",
+    className: "bg-[var(--color-success)]/10 text-[var(--color-success)]",
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-zinc-100 text-[var(--color-muted)]",
+    className: "bg-[var(--color-border)] text-[var(--color-muted)]",
   },
 } as const;
 
@@ -81,7 +82,7 @@ const AppointmentDetailPage = async ({ params }: PageProps) => {
           href="/appointments"
           aria-label="Back to appointments"
           tabIndex={0}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
         >
           <ArrowLeft size={18} />
         </Link>
@@ -95,7 +96,7 @@ const AppointmentDetailPage = async ({ params }: PageProps) => {
         </span>
       </div>
 
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+      <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <div className="flex flex-col gap-4">
           {details.map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center gap-3">
@@ -123,13 +124,23 @@ const AppointmentDetailPage = async ({ params }: PageProps) => {
             <FileText size={14} aria-hidden="true" />
             Notes
           </div>
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+          <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-5">
             <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--color-foreground)]">
               {appointment.notes}
             </p>
           </div>
         </div>
       )}
+
+      <EditAppointment
+        id={appointment.id}
+        title={appointment.title}
+        providerName={appointment.provider_name}
+        location={appointment.location}
+        date={appointment.date}
+        time={appointment.time}
+        notes={appointment.notes}
+      />
 
       <AppointmentActions
         id={appointment.id}

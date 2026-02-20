@@ -18,10 +18,29 @@ type TranslateContentProps = {
   defaultLanguage: string;
 };
 
+const LANG_TO_BCP47: Record<string, string> = {
+  en: "en-US",
+  es: "es-ES",
+  zh: "zh-CN",
+  yue: "zh-HK",
+  ko: "ko-KR",
+  ja: "ja-JP",
+  vi: "vi-VN",
+  tl: "fil-PH",
+  ar: "ar-SA",
+  pt: "pt-BR",
+  sq: "sq-AL",
+  fr: "fr-FR",
+  hi: "hi-IN",
+  ru: "ru-RU",
+};
+
 export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => {
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [detectedLang, setDetectedLang] = useState("");
+  const [sourceLang, setSourceLang] = useState("en");
+  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const [targetLang, setTargetLang] = useState(defaultLanguage);
   const [targetDropdownOpen, setTargetDropdownOpen] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -30,7 +49,10 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
   const [speaking, setSpeaking] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const sourceDropdownRef = useRef<HTMLDivElement>(null);
 
+  const sourceLabel =
+    SUPPORTED_LANGUAGES.find((l) => l.code === sourceLang)?.label ?? "English";
   const targetLabel =
     SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.label ?? "English";
 
@@ -46,6 +68,8 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
+      recognition.maxAlternatives = 3;
+      recognition.lang = LANG_TO_BCP47[sourceLang] || "en-US";
 
       let finalTranscript = "";
 
@@ -137,11 +161,61 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
       <div className="flex flex-col gap-4">
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-[var(--color-muted)]">
-              {detectedLang
-                ? `Detected: ${detectedLang}`
-                : "Speak or type (any language)"}
-            </span>
+            <div ref={sourceDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setSourceDropdownOpen(!sourceDropdownOpen)}
+                aria-label="Select source language"
+                aria-expanded={sourceDropdownOpen}
+                tabIndex={0}
+                className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-background-muted)]"
+              >
+                Speaking: {sourceLabel}
+                <ChevronDown size={12} className="text-[var(--color-muted)]" />
+              </button>
+
+              <AnimatePresence>
+                {sourceDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-10 z-50 max-h-64 w-56 overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg"
+                  >
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => {
+                          setSourceLang(lang.code);
+                          setSourceDropdownOpen(false);
+                        }}
+                        tabIndex={0}
+                        className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors hover:bg-[var(--color-background-muted)] ${
+                          sourceLang === lang.code
+                            ? "font-medium text-[var(--color-accent)]"
+                            : "text-[var(--color-foreground)]"
+                        }`}
+                      >
+                        {lang.label}
+                        {sourceLang === lang.code && (
+                          <Check
+                            size={14}
+                            className="ml-auto text-[var(--color-accent)]"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            {detectedLang && (
+              <span className="text-xs text-[var(--color-muted)]">
+                Detected: {detectedLang}
+              </span>
+            )}
           </div>
 
           <textarea
@@ -162,7 +236,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                 disabled={speaking}
                 aria-label="Listen to source text"
                 tabIndex={0}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
               >
                 <Volume2 size={15} />
               </button>
@@ -213,7 +287,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                         setTargetDropdownOpen(false);
                       }}
                       tabIndex={0}
-                      className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors hover:bg-zinc-50 ${
+                      className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors hover:bg-[var(--color-background-muted)] ${
                         targetLang === lang.code
                           ? "font-medium text-[var(--color-accent)]"
                           : "text-[var(--color-foreground)]"
@@ -258,7 +332,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                   disabled={speaking}
                   aria-label="Listen to translation"
                   tabIndex={0}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
                 >
                   <Volume2 size={15} />
                 </button>
@@ -267,7 +341,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                   onClick={() => handleCopy(translatedText)}
                   aria-label="Copy translation"
                   tabIndex={0}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
                 >
                   {copied ? <Check size={15} /> : <Copy size={15} />}
                 </button>
@@ -301,7 +375,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                 onClick={handleStartRecording}
                 aria-label="Start speaking"
                 tabIndex={0}
-                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.98]"
+                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
               >
                 <Mic size={18} aria-hidden="true" />
                 Speak to Translate
@@ -312,7 +386,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                   onClick={() => handleTranslate()}
                   aria-label="Translate text"
                   tabIndex={0}
-                  className="flex h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-zinc-50 active:scale-[0.98]"
+                  className="flex h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-background-muted)] active:scale-[0.98]"
                 >
                   Translate typed text
                 </button>

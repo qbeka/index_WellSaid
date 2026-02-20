@@ -38,6 +38,34 @@ export const getHealthNote = async (id: string) => {
   return data;
 };
 
+export const updateHealthNote = async (
+  id: string,
+  data: { title?: string; content?: string }
+) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (data.title !== undefined) updates.title = data.title.trim();
+  if (data.content !== undefined) updates.content = data.content.trim();
+
+  const { error } = await supabase
+    .from("health_notes")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/health-notes");
+  revalidatePath(`/health-notes/${id}`);
+  return { success: true };
+};
+
 export const deleteHealthNote = async (id: string) => {
   const supabase = await createClient();
   const {

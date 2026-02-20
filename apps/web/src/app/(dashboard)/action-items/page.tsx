@@ -91,7 +91,7 @@ const ActionItemsPage = async () => {
           {allItems.map((item, i) => (
             <div
               key={`${item.sourceId}-${i}`}
-              className="flex items-start gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+              className="flex items-start gap-3 rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
             >
               <CheckCircle2
                 size={16}

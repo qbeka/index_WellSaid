@@ -3,6 +3,7 @@ import { getHealthNote } from "../actions";
 import { ArrowLeft, FileText, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { DeleteNoteButton } from "./delete-button";
+import { EditNote } from "./edit-note";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -37,7 +38,7 @@ const HealthNoteDetailPage = async ({ params }: PageProps) => {
           href="/health-notes"
           aria-label="Back to health notes"
           tabIndex={0}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
         >
           <ArrowLeft size={18} />
         </Link>
@@ -51,7 +52,7 @@ const HealthNoteDetailPage = async ({ params }: PageProps) => {
         {formatDate(note.created_at)}
       </div>
 
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+      <div className="rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-foreground)]">
           {note.content}
         </p>
@@ -66,7 +67,7 @@ const HealthNoteDetailPage = async ({ params }: PageProps) => {
             {actionItems.map((item, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+                className="flex items-start gap-3 rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
               >
                 <CheckCircle2
                   size={16}
@@ -82,7 +83,8 @@ const HealthNoteDetailPage = async ({ params }: PageProps) => {
         </div>
       )}
 
-      <div className="pt-4">
+      <div className="flex items-center gap-3 pt-4">
+        <EditNote id={note.id} title={note.title} content={note.content} />
         <DeleteNoteButton id={note.id} />
       </div>
     </div>

@@ -39,16 +39,8 @@ const SessionsPage = async () => {
                 key={session.id}
                 href={`/sessions/${session.id}`}
                 tabIndex={0}
-                className="group flex items-start gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-sm"
+                className="group flex items-start gap-4 rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-sm"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-accent-soft)]">
-                  <MessageSquare
-                    size={18}
-                    className="text-[var(--color-accent)]"
-                    aria-hidden="true"
-                  />
-                </div>
-
                 <div className="min-w-0 flex-1">
                   <h3 className="font-medium text-[var(--color-foreground)]">
                     {session.title}

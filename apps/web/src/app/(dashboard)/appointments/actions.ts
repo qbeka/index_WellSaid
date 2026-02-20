@@ -93,6 +93,45 @@ export const updateAppointmentStatus = async (
   return { success: true };
 };
 
+export const updateAppointment = async (
+  id: string,
+  data: {
+    title?: string;
+    providerName?: string;
+    location?: string;
+    date?: string;
+    time?: string;
+    notes?: string;
+  }
+) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (data.title !== undefined) updates.title = data.title.trim();
+  if (data.providerName !== undefined) updates.provider_name = data.providerName.trim() || null;
+  if (data.location !== undefined) updates.location = data.location.trim() || null;
+  if (data.date !== undefined) updates.date = data.date;
+  if (data.time !== undefined) updates.time = data.time || null;
+  if (data.notes !== undefined) updates.notes = data.notes.trim() || null;
+
+  const { error } = await supabase
+    .from("appointments")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/appointments");
+  revalidatePath(`/appointments/${id}`);
+  return { success: true };
+};
+
 export const deleteAppointment = async (id: string) => {
   const supabase = await createClient();
   const {

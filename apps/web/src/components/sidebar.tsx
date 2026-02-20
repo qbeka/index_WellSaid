@@ -10,7 +10,7 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-  MessageCircle,
+  ClipboardPen,
   FolderOpen,
   ScanLine,
   Languages,
@@ -28,7 +28,7 @@ type SidebarProps = {
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/conversation", label: "Conversation", icon: MessageCircle },
+  { href: "/conversation", label: "Record Visit", icon: ClipboardPen },
   { href: "/translate", label: "Translate", icon: Languages },
   { href: "/health-notes", label: "Health Notes", icon: FileText },
   { href: "/appointments", label: "Appointments", icon: Calendar },
@@ -112,20 +112,20 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         role="dialog"
         aria-modal={open}
         aria-label="Navigation menu"
-        className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-[var(--color-surface)] shadow-xl"
+        className="fixed left-0 top-0 z-50 flex h-full w-80 flex-col bg-[var(--color-surface)] shadow-xl"
       >
-        <div className="flex h-16 items-center justify-between border-b border-[var(--color-border)] px-4">
+        <div className="flex h-18 items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
           <div className="flex items-center gap-3 overflow-hidden">
             {userInfo.avatarUrl ? (
               <Image
                 src={userInfo.avatarUrl}
                 alt=""
-                width={36}
-                height={36}
-                className="h-9 w-9 shrink-0 rounded-full object-cover"
+                width={40}
+                height={40}
+                className="h-10 w-10 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-[var(--color-accent-foreground)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-[var(--color-accent-foreground)]">
                 {userInfo.name
                   ? userInfo.name
                       .split(" ")
@@ -136,7 +136,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                   : "?"}
               </div>
             )}
-            <span className="truncate text-sm font-semibold text-[var(--color-foreground)]">
+            <span className="truncate text-[15px] font-semibold text-[var(--color-foreground)]">
               {userInfo.name || "Loading..."}
             </span>
           </div>
@@ -144,14 +144,14 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
             onClick={onClose}
             aria-label="Close navigation"
             tabIndex={0}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
           >
-            <X size={20} />
+            <X size={22} />
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {NAV_ITEMS.map(({ href, label, icon: Icon }, i) => {
               const isActive = pathname === href;
               return (
@@ -167,13 +167,13 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                     aria-label={label}
                     aria-current={isActive ? "page" : undefined}
                     tabIndex={0}
-                    className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${
+                    className={`flex h-12 items-center gap-3.5 rounded-xl px-4 text-[15px] font-medium transition-colors ${
                       isActive
                         ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                        : "text-[var(--color-foreground)] hover:bg-zinc-50"
+                        : "text-[var(--color-foreground)] hover:bg-[var(--color-background-muted)]"
                     }`}
                   >
-                    <Icon size={18} aria-hidden="true" />
+                    <Icon size={20} aria-hidden="true" />
                     {label}
                   </Link>
                 </motion.li>
@@ -187,9 +187,9 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
             onClick={handleSignOut}
             aria-label="Sign out"
             tabIndex={0}
-            className="flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-zinc-50 hover:text-[var(--color-danger)]"
+            className="flex h-12 w-full items-center gap-3.5 rounded-xl px-4 text-[15px] font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)] hover:text-[var(--color-danger)]"
           >
-            <LogOut size={18} aria-hidden="true" />
+            <LogOut size={20} aria-hidden="true" />
             Sign out
           </button>
         </div>

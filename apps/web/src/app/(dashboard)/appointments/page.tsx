@@ -27,11 +27,11 @@ const statusConfig = {
   },
   completed: {
     label: "Completed",
-    className: "bg-emerald-50 text-emerald-600",
+    className: "bg-[var(--color-success)]/10 text-[var(--color-success)]",
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-zinc-100 text-[var(--color-muted)]",
+    className: "bg-[var(--color-border)] text-[var(--color-muted)]",
   },
 } as const;
 
@@ -100,16 +100,8 @@ const AppointmentCard = ({ appointment }: { appointment: AppointmentRow }) => {
       href={`/appointments/${appointment.id}`}
       aria-label={appointment.title}
       tabIndex={0}
-      className="group flex items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-sm active:scale-[0.995]"
+      className="group flex items-center gap-4 rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-sm active:scale-[0.995]"
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--color-accent-soft)]">
-        <Calendar
-          size={18}
-          className="text-[var(--color-accent)]"
-          aria-hidden="true"
-        />
-      </div>
-
       <div className="flex flex-1 flex-col gap-1 overflow-hidden">
         <div className="flex items-center gap-2">
           <span className="truncate text-[15px] font-medium text-[var(--color-foreground)]">

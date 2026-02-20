@@ -51,11 +51,43 @@ export const POST = async (req: Request) => {
       ],
     });
 
+    let imageUrl = "";
+
+    try {
+      const base64Match = image.match(/^data:image\/\w+;base64,(.+)$/);
+      if (base64Match) {
+        const base64Data = base64Match[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        const fileExt = image.split(";")[0].split("/")[1] || "jpeg";
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("documents")
+          .upload(fileName, buffer, {
+            contentType: `image/${fileExt}`,
+            upsert: false,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from("documents")
+            .getPublicUrl(fileName);
+          imageUrl = urlData.publicUrl;
+        } else {
+          console.error("[scan-document] Upload error:", uploadError.message);
+          imageUrl = "upload-failed";
+        }
+      }
+    } catch (uploadErr) {
+      console.error("[scan-document] Storage error:", uploadErr);
+      imageUrl = "upload-failed";
+    }
+
     const { error } = await supabase.from("documents").insert({
       user_id: user.id,
       title: object.title,
       summary: object.summary,
-      image_url: image.substring(0, 100) + "...",
+      image_url: imageUrl || "no-image",
     });
 
     if (error) {

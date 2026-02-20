@@ -165,7 +165,7 @@ const OnboardingPage = () => {
             type="button"
             onClick={handleBack}
             aria-label="Go back"
-            className="h-12 w-full rounded-full border border-[var(--color-border)] bg-transparent text-base font-medium text-[var(--color-muted)] transition-colors hover:bg-zinc-50"
+            className="h-12 w-full rounded-full border border-[var(--color-border)] bg-transparent text-base font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
           >
             Back
           </button>

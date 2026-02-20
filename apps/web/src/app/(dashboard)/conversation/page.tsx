@@ -1,20 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Mic, Square, Loader2, RotateCcw } from "lucide-react";
+import { Mic, Square, Loader2, RotateCcw, PenLine, SendHorizonal } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type Phase = "ready" | "recording" | "processing";
+type Phase = "ready" | "recording" | "typing" | "processing";
 
 const ConversationPage = () => {
   const [phase, setPhase] = useState<Phase>("ready");
   const [transcript, setTranscript] = useState("");
+  const [typedText, setTypedText] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState("");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -35,6 +37,12 @@ const ConversationPage = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (phase === "typing" && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [phase]);
 
   const handleStart = () => {
     try {
@@ -94,13 +102,26 @@ const ConversationPage = () => {
       return;
     }
 
+    await submitVisit(transcript.trim());
+  };
+
+  const handleSubmitText = async () => {
+    if (!typedText.trim() || typedText.trim().length < 10) {
+      setError("Please write more detail about your visit.");
+      return;
+    }
+    await submitVisit(typedText.trim());
+  };
+
+  const submitVisit = async (text: string) => {
     setPhase("processing");
+    setError("");
 
     try {
       const res = await fetch("/api/summarize-visit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: transcript.trim() }),
+        body: JSON.stringify({ transcript: text }),
       });
 
       const data = await res.json();
@@ -108,7 +129,7 @@ const ConversationPage = () => {
       if (res.ok) {
         router.push(`/sessions/${data.session.id}`);
       } else {
-        setError(data.error || "Failed to process recording.");
+        setError(data.error || "Failed to process visit.");
         setPhase("ready");
       }
     } catch {
@@ -118,10 +139,10 @@ const ConversationPage = () => {
   };
 
   return (
-    <div className="-mx-4 -my-6 flex min-h-[calc(100vh-3.5rem)] flex-col">
+    <div className="-mx-5 flex min-h-[calc(100vh-3.5rem)] flex-col">
       <div className="flex flex-1 flex-col px-4">
-        <p className="py-4 text-sm text-[var(--color-foreground)]">
-          This conversation is about a doctor&apos;s visit on {today}
+        <p className="py-4 text-[15px] text-[var(--color-foreground)]">
+          Record a doctor&apos;s visit on {today}
         </p>
 
         <div className="flex flex-1 flex-col rounded-2xl bg-[var(--color-background-muted)]">
@@ -137,7 +158,7 @@ const ConversationPage = () => {
                   size={36}
                   className="animate-spin text-[var(--color-accent)]"
                 />
-                <p className="text-sm text-[var(--color-muted)]">
+                <p className="text-[15px] text-[var(--color-muted)]">
                   Processing your visit...
                 </p>
               </motion.div>
@@ -160,37 +181,70 @@ const ConversationPage = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto">
                   {transcript ? (
-                    <p className="text-sm leading-relaxed text-[var(--color-foreground)]">
+                    <p className="text-[15px] leading-relaxed text-[var(--color-foreground)]">
                       {transcript}
                     </p>
                   ) : (
-                    <p className="text-sm text-[var(--color-muted)]">
+                    <p className="text-[15px] text-[var(--color-muted)]">
                       Listening for speech...
                     </p>
                   )}
                 </div>
+              </motion.div>
+            ) : phase === "typing" ? (
+              <motion.div
+                key="typing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-1 flex-col p-4"
+              >
+                <span className="mb-3 text-xs font-medium text-[var(--color-muted)]">
+                  Write what happened during your visit
+                </span>
+                <textarea
+                  ref={textareaRef}
+                  value={typedText}
+                  onChange={(e) => setTypedText(e.target.value)}
+                  placeholder="Describe your visit -- what the doctor said, diagnoses, medications, instructions..."
+                  className="flex-1 resize-none bg-transparent text-[15px] leading-relaxed text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)]"
+                />
               </motion.div>
             ) : (
               <motion.div
                 key="ready"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-1 flex-col items-center justify-center gap-4"
+                className="flex flex-1 flex-col items-center justify-center gap-5 px-6"
               >
-                <button
-                  type="button"
-                  onClick={handleStart}
-                  aria-label="Start recording"
-                  tabIndex={0}
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-foreground)] text-[var(--color-background)] transition-all hover:opacity-90 active:scale-90"
-                >
-                  <Mic size={32} />
-                </button>
-                <p className="text-sm text-[var(--color-muted)]">
-                  Press the button above to start recording
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={handleStart}
+                    aria-label="Record with voice"
+                    tabIndex={0}
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-accent)] text-white shadow-lg transition-all hover:opacity-90 active:scale-90"
+                  >
+                    <Mic size={32} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhase("typing");
+                      setError("");
+                      setTypedText("");
+                    }}
+                    aria-label="Write visit notes"
+                    tabIndex={0}
+                    className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow transition-all hover:border-[var(--color-accent)]/30 active:scale-90"
+                  >
+                    <PenLine size={28} />
+                  </button>
+                </div>
+                <p className="text-center text-[15px] text-[var(--color-muted)]">
+                  Record by voice or write what happened
                 </p>
                 {error && (
-                  <p className="text-center text-sm text-[var(--color-danger)]">
+                  <p className="text-center text-[14px] text-[var(--color-danger)]">
                     {error}
                   </p>
                 )}
@@ -211,15 +265,47 @@ const ConversationPage = () => {
               <Square size={18} aria-hidden="true" />
               End Visit Recording
             </button>
+          ) : phase === "typing" ? (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleSubmitText}
+                disabled={!typedText.trim()}
+                aria-label="Submit visit notes"
+                tabIndex={0}
+                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
+              >
+                <SendHorizonal size={18} aria-hidden="true" />
+                Submit Visit Notes
+              </button>
+              {error && (
+                <p className="text-center text-[14px] text-[var(--color-danger)]">
+                  {error}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setPhase("ready");
+                  setTypedText("");
+                  setError("");
+                }}
+                aria-label="Go back"
+                tabIndex={0}
+                className="flex h-11 w-full items-center justify-center rounded-2xl text-[14px] font-medium text-[var(--color-muted)] transition-all hover:bg-[var(--color-background-muted)]"
+              >
+                Go back
+              </button>
+            </div>
           ) : phase === "ready" ? (
             <Link
               href="/dashboard"
               aria-label="Go back"
               tabIndex={0}
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-[var(--color-border)] text-[15px] font-medium text-[var(--color-muted)] transition-all hover:bg-[var(--color-background-muted)] active:scale-[0.98]"
             >
               <RotateCcw size={16} aria-hidden="true" />
-              I don&apos;t want to record, go back
+              Go back to home
             </Link>
           ) : null}
         </div>

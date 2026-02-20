@@ -35,6 +35,9 @@ const ScheduleAppointmentPage = () => {
     "idle"
   );
   const [reason, setReason] = useState("");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+  const [notes, setNotes] = useState("");
   const [statuses, setStatuses] = useState<StatusEntry[]>([]);
   const [result, setResult] = useState<AppointmentResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -67,7 +70,12 @@ const ScheduleAppointmentPage = () => {
       const res = await fetch("/api/schedule-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: reason.trim() }),
+        body: JSON.stringify({
+          reason: reason.trim(),
+          preferredDate: preferredDate || undefined,
+          preferredTime: preferredTime || undefined,
+          notes: notes.trim() || undefined,
+        }),
       });
 
       if (!res.ok || !res.body) {
@@ -137,62 +145,135 @@ const ScheduleAppointmentPage = () => {
           Schedule Appointment
         </h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Automatically schedule an appointment with your healthcare provider.
-          We&apos;ll call them, and you confirm the times.
+          Fill in the details below and we&apos;ll schedule an appointment with
+          your healthcare provider.
         </p>
       </div>
 
-      <div
-        ref={feedRef}
-        className="min-h-[240px] max-h-[400px] overflow-y-auto rounded-2xl bg-[var(--color-background-muted)] p-5"
-      >
-        {statuses.length === 0 && phase !== "done" ? (
-          <p className="py-16 text-center text-sm text-[var(--color-muted)]">
-            Press the button below to start the scheduling process. This screen
-            will refresh automatically with updates.
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {statuses.map((s, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-start gap-3"
-              >
-                <div className="mt-0.5">
-                  {s.step === "confirmed" ? (
-                    <CheckCircle
-                      size={16}
-                      className="text-[var(--color-success)]"
-                    />
-                  ) : (
-                    <div className="flex h-4 w-4 items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[var(--color-foreground)]">
-                    {s.message}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
-                    {s.time}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-
-            {phase === "calling" && (
-              <div className="flex items-center gap-2 pt-2 text-sm text-[var(--color-muted)]">
-                <Loader2 size={14} className="animate-spin" />
-                Working...
-              </div>
-            )}
+      {phase === "idle" && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="reason"
+              className="text-[13px] font-medium text-[var(--color-foreground)]"
+            >
+              Reason for visit
+            </label>
+            <input
+              id="reason"
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Annual checkup, headache follow-up"
+              className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+            />
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="prefDate"
+                className="text-[13px] font-medium text-[var(--color-foreground)]"
+              >
+                Preferred date (optional)
+              </label>
+              <input
+                id="prefDate"
+                type="date"
+                value={preferredDate}
+                onChange={(e) => setPreferredDate(e.target.value)}
+                className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="prefTime"
+                className="text-[13px] font-medium text-[var(--color-foreground)]"
+              >
+                Preferred time (optional)
+              </label>
+              <input
+                id="prefTime"
+                type="time"
+                value={preferredTime}
+                onChange={(e) => setPreferredTime(e.target.value)}
+                className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="notes"
+              className="text-[13px] font-medium text-[var(--color-foreground)]"
+            >
+              Additional notes (optional)
+            </label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any details you'd like the scheduler to know"
+              rows={3}
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+            />
+          </div>
+        </div>
+      )}
+
+      {phase !== "idle" && (
+        <div
+          ref={feedRef}
+          className="min-h-[200px] max-h-[400px] overflow-y-auto rounded-2xl bg-[var(--color-background-muted)] p-5"
+        >
+          {statuses.length === 0 && phase === "calling" ? (
+            <div className="flex items-center justify-center gap-2 py-16 text-sm text-[var(--color-muted)]">
+              <Loader2 size={16} className="animate-spin" />
+              Starting call...
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {statuses.map((s, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-start gap-3"
+                >
+                  <div className="mt-0.5">
+                    {s.step === "confirmed" ? (
+                      <CheckCircle
+                        size={16}
+                        className="text-[var(--color-success)]"
+                      />
+                    ) : (
+                      <div className="flex h-4 w-4 items-center justify-center">
+                        <div className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-[var(--color-foreground)]">
+                      {s.message}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
+                      {s.time}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+
+              {phase === "calling" && (
+                <div className="flex items-center gap-2 pt-2 text-sm text-[var(--color-muted)]">
+                  <Loader2 size={14} className="animate-spin" />
+                  Working...
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {phase === "done" && result && (
         <motion.div
@@ -260,10 +341,10 @@ const ScheduleAppointmentPage = () => {
             onClick={handleStartCall}
             aria-label="Start scheduling process"
             tabIndex={0}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <Phone size={18} aria-hidden="true" />
-            Start Scheduling Process
+            Start Scheduling
           </button>
         )}
 
@@ -276,7 +357,7 @@ const ScheduleAppointmentPage = () => {
             }}
             aria-label="View all appointments"
             tabIndex={0}
-            className="flex h-14 w-full items-center justify-center rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             View All Appointments
           </button>
@@ -291,7 +372,7 @@ const ScheduleAppointmentPage = () => {
             }}
             aria-label="Try again"
             tabIndex={0}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <RotateCcw size={16} aria-hidden="true" />
             Try Again
@@ -303,7 +384,7 @@ const ScheduleAppointmentPage = () => {
             href="/dashboard"
             aria-label="Back to Home"
             tabIndex={0}
-            className="flex h-12 w-full items-center justify-center rounded-2xl bg-[var(--color-background-muted)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-zinc-200 active:scale-[0.98]"
+            className="flex h-12 w-full items-center justify-center rounded-2xl bg-[var(--color-background-muted)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-border)] active:scale-[0.98]"
           >
             Back to Home
           </Link>

@@ -62,7 +62,7 @@ export const DeleteNoteButton = ({ id }: DeleteNoteButtonProps) => {
         onClick={() => setConfirming(false)}
         aria-label="Cancel delete"
         tabIndex={0}
-        className="flex h-10 items-center rounded-full border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-zinc-50"
+        className="flex h-10 items-center rounded-full border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
       >
         Cancel
       </button>

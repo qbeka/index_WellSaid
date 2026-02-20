@@ -122,7 +122,7 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
             <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
               Record Health Note
             </h2>
-            <p className="text-center text-sm text-[var(--color-muted)]">
+            <p className="text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
               Record health incidents you&apos;re experiencing, and we&apos;ll
               use this information to help you.
             </p>
@@ -130,11 +130,11 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
 
           <div className="mb-6 min-h-[120px] rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-background)] p-4">
             {transcript ? (
-              <p className="text-sm leading-relaxed text-[var(--color-foreground)]">
+              <p className="text-[15px] leading-relaxed text-[var(--color-foreground)]">
                 {transcript}
               </p>
             ) : (
-              <p className="text-center text-sm text-[var(--color-muted)]">
+              <p className="text-center text-[15px] text-[var(--color-muted)]">
                 {recording
                   ? "Listening..."
                   : "Your transcript will appear here"}
@@ -143,8 +143,8 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
           </div>
 
           {saving ? (
-            <div className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)]">
-              <Loader2 size={18} className="animate-spin" />
+            <div className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white">
+              <Loader2 size={20} className="animate-spin" />
               Processing...
             </div>
           ) : recording ? (
@@ -155,7 +155,7 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
               tabIndex={0}
               className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
-              <Square size={18} aria-hidden="true" />
+              <Square size={20} aria-hidden="true" />
               Stop Recording
             </button>
           ) : (
@@ -164,9 +164,9 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
               onClick={handleStartRecording}
               aria-label="Start recording"
               tabIndex={0}
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-foreground)] text-[15px] font-medium text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.98]"
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
-              <Mic size={18} aria-hidden="true" />
+              <Mic size={20} aria-hidden="true" />
               Start Recording
             </button>
           )}

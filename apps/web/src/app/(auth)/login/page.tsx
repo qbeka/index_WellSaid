@@ -21,13 +21,20 @@ const LoginPage = () => {
   return (
     <div className="flex flex-col items-center gap-10">
       <div className="flex flex-col items-center gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
+        <span
+          className="text-3xl tracking-tight text-[var(--color-accent)]"
+          style={{ fontFamily: "var(--font-dancing)" }}
+        >
           WellSaid
-        </h1>
-        <p className="max-w-xs text-center text-sm leading-relaxed text-[var(--color-muted)]">
-          Your healthcare copilot. We help you understand, remember, and act on
-          every doctor visit.
-        </p>
+        </span>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-[15px] font-medium text-[var(--color-foreground)]">
+            Making healthcare easier for all
+          </p>
+          <p className="text-sm text-[var(--color-muted)]">
+            Sign into your account below
+          </p>
+        </div>
       </div>
 
       <div className="flex w-full flex-col gap-4">
@@ -42,7 +49,7 @@ const LoginPage = () => {
           onClick={handleGoogleSignIn}
           disabled={loading}
           aria-label="Continue with Google"
-          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-base font-medium text-[var(--color-foreground)] transition-colors hover:bg-zinc-50 active:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[15px] font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background-muted)] active:bg-[var(--color-border)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             width="18"
@@ -70,11 +77,6 @@ const LoginPage = () => {
           {loading ? "Redirecting..." : "Continue with Google"}
         </button>
       </div>
-
-      <p className="max-w-xs text-center text-xs leading-relaxed text-[var(--color-muted)]">
-        By continuing, you agree to let WellSaid securely manage your
-        healthcare information.
-      </p>
     </div>
   );
 };

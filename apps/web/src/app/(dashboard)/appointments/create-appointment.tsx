@@ -89,7 +89,7 @@ export const CreateAppointment = () => {
           onClick={handleReset}
           aria-label="Cancel"
           tabIndex={0}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-zinc-100"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
         >
           <X size={16} />
         </button>

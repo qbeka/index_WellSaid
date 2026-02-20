@@ -47,7 +47,7 @@ export const AppointmentActions = ({
               disabled={!!loading}
               aria-label="Mark as completed"
               tabIndex={0}
-              className="flex h-11 items-center gap-2 rounded-xl bg-emerald-50 px-4 text-sm font-medium text-emerald-600 transition-all hover:bg-emerald-100 active:scale-[0.97] disabled:opacity-50"
+              className="flex h-11 items-center gap-2 rounded-xl bg-[var(--color-success)]/10 px-4 text-sm font-medium text-[var(--color-success)] transition-all hover:bg-[var(--color-success)]/15 active:scale-[0.97] disabled:opacity-50"
             >
               {loading === "completed" ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -62,7 +62,7 @@ export const AppointmentActions = ({
               disabled={!!loading}
               aria-label="Cancel appointment"
               tabIndex={0}
-              className="flex h-11 items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-all hover:bg-zinc-50 active:scale-[0.97] disabled:opacity-50"
+              className="flex h-11 items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-all hover:bg-[var(--color-background-muted)] active:scale-[0.97] disabled:opacity-50"
             >
               {loading === "cancelled" ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -81,7 +81,7 @@ export const AppointmentActions = ({
             disabled={!!loading}
             aria-label="Restore to upcoming"
             tabIndex={0}
-            className="flex h-11 items-center gap-2 rounded-xl bg-[var(--color-accent-soft)] px-4 text-sm font-medium text-[var(--color-accent)] transition-all hover:bg-indigo-100 active:scale-[0.97] disabled:opacity-50"
+            className="flex h-11 items-center gap-2 rounded-xl bg-[var(--color-accent-soft)] px-4 text-sm font-medium text-[var(--color-accent)] transition-all hover:bg-[var(--color-accent-soft)] active:scale-[0.97] disabled:opacity-50"
           >
             {loading === "upcoming" ? (
               <Loader2 size={14} className="animate-spin" />
@@ -127,7 +127,7 @@ export const AppointmentActions = ({
               onClick={() => setConfirmDelete(false)}
               aria-label="Cancel delete"
               tabIndex={0}
-              className="flex h-10 items-center rounded-xl border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-zinc-50"
+              className="flex h-10 items-center rounded-xl border border-[var(--color-border)] px-4 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
             >
               Cancel
             </button>

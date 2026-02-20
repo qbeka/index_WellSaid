@@ -3,26 +3,30 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import {
-  Bot,
   ListChecks,
   Calendar,
   Mic,
-  Send,
-  PenLine,
+  SendHorizonal,
+  NotebookPen,
   CalendarPlus,
   ArrowRight,
-  MessageCircle,
   Square,
   Loader2,
-  User,
+  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { RecordNoteSheet } from "./record-note-sheet";
 import Link from "next/link";
 
+type ActionItem = {
+  text: string;
+  source: string;
+  date: string;
+};
+
 type HomeContentProps = {
   firstName: string;
-  actionItemCount: number;
+  actionItems: ActionItem[];
   upcomingAppointments: number;
 };
 
@@ -41,9 +45,17 @@ const getMessageText = (message: {
     .map((p) => p.text)
     .join("");
 
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+};
+
 export const HomeContent = ({
   firstName,
-  actionItemCount,
+  actionItems,
   upcomingAppointments,
 }: HomeContentProps) => {
   const [recordOpen, setRecordOpen] = useState(false);
@@ -60,7 +72,7 @@ export const HomeContent = ({
   const hasMessages = messages.length > 0;
 
   const greeting = firstName ? `Welcome back, ${firstName}!` : "Welcome back!";
-  const hasSummary = actionItemCount > 0 || upcomingAppointments > 0;
+  const hasSummary = actionItems.length > 0 || upcomingAppointments > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -145,7 +157,7 @@ export const HomeContent = ({
 
   return (
     <>
-      <div className="flex flex-1 flex-col pb-52">
+      <div className="flex flex-1 flex-col pb-56">
         <AnimatePresence mode="wait">
           {!hasMessages ? (
             <motion.div
@@ -154,58 +166,79 @@ export const HomeContent = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.3 }}
-              className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4"
+              className="flex flex-col gap-6 px-4 pt-4"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)]">
-                <Bot
-                  size={28}
-                  className="text-[var(--color-accent)]"
-                  aria-hidden="true"
-                />
-              </div>
-
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-2 pt-8">
                 <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-foreground)]">
                   {greeting}
                 </h1>
                 <p className="max-w-sm text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
-                  Below is a quick summary of your wellbeing and action items
+                  Here&apos;s a summary of your health and action items
                 </p>
               </div>
 
               {hasSummary ? (
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <div className="flex flex-col gap-4">
                   {upcomingAppointments > 0 && (
-                    <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
+                    <Link
+                      href="/appointments"
+                      className="flex items-center gap-3 rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 transition-colors hover:bg-[var(--color-background-muted)]"
+                    >
                       <Calendar
-                        size={16}
-                        className="text-[var(--color-accent)]"
+                        size={18}
+                        className="shrink-0 text-[var(--color-accent)]"
                         aria-hidden="true"
                       />
-                      <span className="text-sm text-[var(--color-foreground)]">
+                      <span className="text-[15px] text-[var(--color-foreground)]">
                         {upcomingAppointments} upcoming{" "}
                         {upcomingAppointments === 1
                           ? "appointment"
                           : "appointments"}
                       </span>
-                    </div>
+                    </Link>
                   )}
-                  {actionItemCount > 0 && (
-                    <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
-                      <ListChecks
-                        size={16}
-                        className="text-[var(--color-accent)]"
-                        aria-hidden="true"
-                      />
-                      <span className="text-sm text-[var(--color-foreground)]">
-                        {actionItemCount} action{" "}
-                        {actionItemCount === 1 ? "item" : "items"}
-                      </span>
+
+                  {actionItems.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between px-1">
+                        <h2 className="flex items-center gap-2 text-[14px] font-semibold text-[var(--color-foreground)]">
+                          <ListChecks size={16} className="text-[var(--color-accent)]" aria-hidden="true" />
+                          Action Items
+                        </h2>
+                        <Link
+                          href="/action-items"
+                          className="text-[13px] font-medium text-[var(--color-accent)] transition-colors hover:underline"
+                        >
+                          View all
+                        </Link>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        {actionItems.slice(0, 8).map((item, i) => (
+                          <div
+                            key={`${item.source}-${i}`}
+                            className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+                          >
+                            <CheckCircle2
+                              size={16}
+                              className="mt-0.5 shrink-0 text-[var(--color-accent)]"
+                              aria-hidden="true"
+                            />
+                            <div className="flex flex-1 flex-col gap-0.5">
+                              <span className="text-[14px] leading-relaxed text-[var(--color-foreground)]">
+                                {item.text}
+                              </span>
+                              <span className="text-[12px] text-[var(--color-muted)]">
+                                {item.source} &mdash; {formatDate(item.date)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="max-w-sm text-center text-sm text-[var(--color-muted)]">
+                <p className="max-w-sm self-center text-center text-[15px] text-[var(--color-muted)]">
                   No upcoming appointments or action items. Check back after
                   your next visit.
                 </p>
@@ -217,7 +250,7 @@ export const HomeContent = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.15 }}
-              className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6"
+              className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6"
             >
               {messages.map((message, i) => {
                 const text = getMessageText(message);
@@ -233,28 +266,17 @@ export const HomeContent = ({
                       duration: 0.25,
                       delay: i === messages.length - 1 ? 0.05 : 0,
                     }}
-                    className="flex gap-3"
+                    className={`rounded-2xl px-4 py-3 ${
+                      isUser
+                        ? "ml-8 bg-[var(--color-accent)] text-white"
+                        : "mr-8 bg-[var(--color-background-muted)] text-[var(--color-foreground)]"
+                    }`}
                   >
-                    <div
-                      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        isUser
-                          ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
-                          : "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-                      }`}
-                    >
-                      {isUser ? (
-                        <User size={14} aria-hidden="true" />
-                      ) : (
-                        <Bot size={14} aria-hidden="true" />
-                      )}
-                    </div>
-                    <div className="flex-1 pt-1">
-                      <p className="mb-1 text-xs font-medium text-[var(--color-muted)]">
-                        {isUser ? "You" : "WellSaid"}
-                      </p>
-                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--color-foreground)]">
-                        {text}
-                      </div>
+                    <p className="mb-1 text-xs font-medium opacity-70">
+                      {isUser ? "You" : "WellSaid"}
+                    </p>
+                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
+                      {text}
                     </div>
                   </motion.div>
                 );
@@ -264,13 +286,10 @@ export const HomeContent = ({
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3"
+                  className="mr-8 rounded-2xl bg-[var(--color-background-muted)] px-4 py-3"
                 >
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
-                    <Bot size={14} aria-hidden="true" />
-                  </div>
-                  <div className="flex items-center gap-2 pt-1 text-sm text-[var(--color-muted)]">
-                    <Loader2 size={14} className="animate-spin" />
+                  <div className="flex items-center gap-2 text-[15px] text-[var(--color-muted)]">
+                    <Loader2 size={16} className="animate-spin" />
                     Thinking...
                   </div>
                 </motion.div>
@@ -282,27 +301,35 @@ export const HomeContent = ({
         </AnimatePresence>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-[var(--color-surface)] shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
-        <div className="mx-auto max-w-2xl px-4 pb-5 pt-3">
-          <div className="mb-3 grid grid-cols-2 gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="mx-auto max-w-2xl px-4 pb-6 pt-3">
+          <div className="mb-3 grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setRecordOpen(true)}
               aria-label="Record health note"
               tabIndex={0}
-              className="flex h-11 items-center justify-center gap-2.5 rounded-xl bg-[var(--color-accent)] text-[13px] font-semibold text-[var(--color-accent-foreground)] transition-all hover:opacity-90 active:scale-[0.97]"
+              className="btn-glass flex h-12 items-center justify-center gap-2.5 rounded-2xl text-[14px] font-medium transition-all"
             >
-              <PenLine size={15} aria-hidden="true" />
-              Record health note
+              <NotebookPen
+                size={18}
+                className="text-[var(--color-accent)]"
+                aria-hidden="true"
+              />
+              Record note
             </button>
             <Link
               href="/appointments/schedule"
               aria-label="Schedule appointment"
               tabIndex={0}
-              className="flex h-11 items-center justify-center gap-2.5 rounded-xl bg-[var(--color-foreground)] text-[13px] font-semibold text-[var(--color-background)] transition-all hover:opacity-90 active:scale-[0.97]"
+              className="btn-glass flex h-12 items-center justify-center gap-2.5 rounded-2xl text-[14px] font-medium transition-all"
             >
-              <CalendarPlus size={15} aria-hidden="true" />
-              Schedule appointment
+              <CalendarPlus
+                size={18}
+                className="text-[var(--color-accent)]"
+                aria-hidden="true"
+              />
+              Schedule visit
             </Link>
           </div>
 
@@ -312,13 +339,8 @@ export const HomeContent = ({
             disabled={isLoading}
             tabIndex={0}
             aria-label={QUICK_PROMPTS[promptIndex]}
-            className="mb-3 flex w-full items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/40 hover:shadow-sm disabled:opacity-50"
+            className="mb-3 flex h-11 w-full items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background-muted)] px-4 text-left transition-all hover:bg-[var(--color-accent-soft)] disabled:opacity-50"
           >
-            <MessageCircle
-              size={15}
-              className="shrink-0 text-[var(--color-accent)]"
-              aria-hidden="true"
-            />
             <AnimatePresence mode="wait">
               <motion.span
                 key={promptIndex}
@@ -326,13 +348,13 @@ export const HomeContent = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="flex-1 truncate text-sm text-[var(--color-foreground)]"
+                className="flex-1 truncate text-[14px] text-[var(--color-foreground)]"
               >
                 {QUICK_PROMPTS[promptIndex]}
               </motion.span>
             </AnimatePresence>
             <ArrowRight
-              size={13}
+              size={14}
               className="shrink-0 text-[var(--color-muted)]"
               aria-hidden="true"
             />
@@ -342,15 +364,15 @@ export const HomeContent = ({
             <button
               type="button"
               onClick={handleMicToggle}
-              aria-label={voiceActive ? "Stop voice input" : "Voice input"}
+              aria-label={voiceActive ? "Stop listening" : "Speak"}
               tabIndex={0}
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 ${
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all active:scale-95 ${
                 voiceActive
-                  ? "bg-[var(--color-danger)] text-white"
-                  : "bg-[var(--color-foreground)] text-[var(--color-background)]"
+                  ? "bg-[var(--color-danger)] text-white shadow-md"
+                  : "bg-[var(--color-accent)] text-white"
               }`}
             >
-              {voiceActive ? <Square size={16} /> : <Mic size={16} />}
+              {voiceActive ? <Square size={18} /> : <Mic size={20} />}
             </button>
 
             <input
@@ -363,8 +385,8 @@ export const HomeContent = ({
               placeholder="Ask any question..."
               readOnly={voiceActive}
               disabled={isLoading}
-              aria-label="Chat input"
-              className="h-11 flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10 disabled:opacity-50"
+              aria-label="Type your question here"
+              className="h-12 flex-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10 disabled:opacity-50"
             />
 
             <button
@@ -373,14 +395,14 @@ export const HomeContent = ({
               disabled={
                 !(voiceActive ? voiceText : inputText).trim() || isLoading
               }
-              aria-label="Send"
+              aria-label="Send message"
               tabIndex={0}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-foreground)] text-[var(--color-background)] transition-all hover:opacity-90 active:scale-90 disabled:opacity-30"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-accent)] text-white transition-all active:scale-95 disabled:opacity-30"
             >
               {isLoading ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <Send size={16} />
+                <SendHorizonal size={20} />
               )}
             </button>
           </div>

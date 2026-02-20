@@ -61,9 +61,9 @@ export const LanguageSelect = ({ value, onChange }: LanguageSelectProps) => {
               }}
               tabIndex={0}
               aria-label={lang.label}
-              className={`flex w-full items-center justify-between px-5 py-3 text-left text-base transition-colors hover:bg-zinc-50 ${
+              className={`flex w-full items-center justify-between px-5 py-3 text-left text-base transition-colors hover:bg-[var(--color-background-muted)] ${
                 value === lang.code
-                  ? "bg-zinc-50 font-medium text-[var(--color-accent)]"
+                  ? "bg-[var(--color-background-muted)] font-medium text-[var(--color-accent)]"
                   : "text-[var(--color-foreground)]"
               }`}
             >

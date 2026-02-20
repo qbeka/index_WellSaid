@@ -1,4 +1,4 @@
-import { FolderOpen, ScanLine, ChevronRight } from "lucide-react";
+import { FolderOpen, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -45,22 +45,31 @@ const DocumentsPage = async () => {
       ) : (
         <div className="flex flex-col gap-2">
           {documents.map((doc) => (
-            <div
+            <Link
               key={doc.id}
-              className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
+              href={`/documents/${doc.id}`}
+              tabIndex={0}
+              className="group rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-sm active:scale-[0.995]"
             >
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-[15px] font-medium text-[var(--color-foreground)]">
-                  {doc.title}
-                </h3>
-                <span className="text-xs text-[var(--color-muted)]">
-                  {formatDate(doc.created_at)}
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-1 flex-col gap-1 overflow-hidden">
+                  <span className="truncate text-[15px] font-medium text-[var(--color-foreground)]">
+                    {doc.title}
+                  </span>
+                  <p className="line-clamp-2 text-sm leading-relaxed text-[var(--color-muted)]">
+                    {doc.summary}
+                  </p>
+                  <span className="mt-1 text-xs text-[var(--color-muted)]">
+                    {formatDate(doc.created_at)}
+                  </span>
+                </div>
+                <ChevronRight
+                  size={18}
+                  className="ml-3 shrink-0 text-[var(--color-muted)]/40 transition-colors group-hover:text-[var(--color-accent)]"
+                  aria-hidden="true"
+                />
               </div>
-              <p className="text-sm leading-relaxed text-[var(--color-muted)]">
-                {doc.summary}
-              </p>
-            </div>
+            </Link>
           ))}
         </div>
       )}
