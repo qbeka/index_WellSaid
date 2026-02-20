@@ -29,18 +29,18 @@ export const middleware = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthPage =
+  const isAuthRoute =
     request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/signup";
+    request.nextUrl.pathname.startsWith("/auth/callback");
   const isOnboarding = request.nextUrl.pathname === "/onboarding";
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

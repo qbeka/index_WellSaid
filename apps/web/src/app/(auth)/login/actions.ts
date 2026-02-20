@@ -2,18 +2,22 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
-export const login = async (formData: FormData) => {
+export const signInWithGoogle = async () => {
   const supabase = await createClient();
+  const origin = (await headers()).get("origin");
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
   });
 
   if (error) {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect(data.url);
 };
