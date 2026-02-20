@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 
@@ -29,5 +28,5 @@ export const signInWithGoogle = async () => {
     return { error: error.message };
   }
 
-  redirect(data.url);
+  return { url: data.url };
 };

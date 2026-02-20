@@ -15,6 +15,11 @@ const LoginPage = () => {
     if (result?.error) {
       setError(result.error);
       setLoading(false);
+      return;
+    }
+
+    if (result?.url) {
+      window.location.href = result.url;
     }
   };
 
