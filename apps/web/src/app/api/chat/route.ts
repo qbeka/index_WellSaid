@@ -118,5 +118,5 @@ export const POST = async (req: Request) => {
     messages,
   });
 
-  return result.toDataStreamResponse();
+  return result.toUIMessageStreamResponse();
 };

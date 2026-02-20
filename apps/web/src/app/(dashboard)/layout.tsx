@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Stethoscope, MessageCircle } from "lucide-react";
+import { Menu, Stethoscope } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import { ChatWidget } from "@/components/chat-widget";
 import Link from "next/link";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -40,13 +41,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
       <main className="mx-auto max-w-4xl px-4 py-6">{children}</main>
 
-      <button
-        aria-label="Open chat assistant"
-        tabIndex={0}
-        className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-accent)] text-[var(--color-accent-foreground)] shadow-lg transition-transform hover:scale-105"
-      >
-        <MessageCircle size={22} />
-      </button>
+      <ChatWidget />
     </div>
   );
 };
