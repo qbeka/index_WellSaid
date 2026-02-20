@@ -1,24 +1,24 @@
 # WellSaid
 
-**A Language Barrier Shouldn't Be Life-Threatening.**
+**Understanding your health shouldn't be a privilege.**
 
-A healthcare copilot for web, iOS, and Android that manages the entire doctor's visit lifecycle -- ensuring that language and memory are never barriers to quality care.
+**WellSaid** is a healthcare copilot that manages an entire doctor's visit lifecycle for you. Ensuring that language and memory don't get in the way of you recieving the best care available. Everyone deserves to know what is going on with them medically, and language should not be getting in the way of that.  
 
 ---
 
-## The Problem
+## Our Motivation Behind WellSaid
 
-When my father had a heart attack, the emergency room was already chaotic. But the real danger wasn't just his heart -- it was the struggle to grasp understanding. My dad only speaks Albanian, and as the doctors asked him countless questions about his symptoms and history, he couldn't find the words to respond. Luckily, I was there to step in and translate everything. Had I not been there to bridge that gap, the outcome would have been a delayed response -- or worse. In these situations, you need all the time you can get.
+As children of immigrants, many of us have seen our parents or grandparents struggle to understand their medical situations. The issue is usually not a lack of education, but a language barrier. When someone cannot fully understand their doctor, diagnosis, or medical report, it becomes much harder to trust the healthcare system. That fear and uncertainty is very real in many immigrant communities.
 
-This isn't just my family's story. It's a systemic failure.
+As healthcare continues to rely more on technology, especially digital medical reporting, accessibility becomes even more important. Yet many of these tools are not designed with elderly users, non-English speakers, or people with low digital confidence in mind. If healthcare technology is meant to improve care, it must also be built in a way that includes everyone.
+
+This isn't just something a few people deale with and the stats prove it:
 
 - **82%** of older adults believe the healthcare system is unprepared to meet their needs. The danger is even greater for those facing language barriers.
 - Patients with limited English proficiency (LEP) are **nearly twice as likely** to suffer physical harm from medical errors compared to English-speaking patients.
 - Low health literacy leads to **68% more** misinterpretations of prescriptions.
 - Patients with language barriers have **11% to 14% higher odds** of hospital readmission when professional interpretation is missing.
 - Communication errors are the root cause of **59%** of serious adverse events in clinical settings.
-
-For my dad, being unable to speak the language in the ER was a life-threatening problem. A misunderstood instruction or a missed detail in discharge paperwork is often what turns a manageable recovery into a critical return to the ER.
 
 > Sources:
 > 1. [The Growing Demand for Age-Friendly Care (John A. Hartford Foundation)](https://www.johnahartford.org/images/uploads/resources/The_Growing_Demand_for_Age-Friendly_Care_Report_FINAL.pdf)
