@@ -74,10 +74,10 @@ UI and AI responses available in multiple languages, including English, Spanish,
 | Layer | Technologies |
 |---|---|
 | **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS, Motion |
-| **Backend and Data** | Next.js API routes, Firebase Auth, Firestore (per-user security rules) |
+| **Backend and Data** | Next.js API routes, Supabase Auth, Supabase Database (Postgres with Row Level Security) |
 | **AI** | Vercel AI SDK, OpenAI GPT-4o-mini (chat), GPT-4o (vision), Zod schemas for structured outputs |
 | **Voice** | AssemblyAI streaming transcription, Vapi SDK for outbound AI voice calls |
-| **Mobile** | iOS and Android (planned) |
+| **Mobile** | React Native (Expo) for iOS and Android |
 | **i18n** | Language preferences propagate across UI and all LLM calls |
 
 ---
