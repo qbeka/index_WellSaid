@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useChat } from "@ai-sdk/react";
 import {
   Bot,
   ListChecks,
@@ -12,6 +13,8 @@ import {
   ArrowRight,
   MessageCircle,
   Square,
+  Loader2,
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { RecordNoteSheet } from "./record-note-sheet";
@@ -30,6 +33,14 @@ const QUICK_PROMPTS = [
   "Summarize my recent documents.",
 ] as const;
 
+const getMessageText = (message: {
+  parts: Array<{ type: string; text?: string }>;
+}) =>
+  message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+
 export const HomeContent = ({
   firstName,
   actionItemCount,
@@ -42,6 +53,11 @@ export const HomeContent = ({
   const [inputText, setInputText] = useState("");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { messages, sendMessage, status } = useChat();
+  const isLoading = status === "submitted" || status === "streaming";
+  const hasMessages = messages.length > 0;
 
   const greeting = firstName ? `Welcome back, ${firstName}!` : "Welcome back!";
   const hasSummary = actionItemCount > 0 || upcomingAppointments > 0;
@@ -58,6 +74,10 @@ export const HomeContent = ({
       recognitionRef.current?.stop();
     };
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleMicToggle = () => {
     if (voiceActive) {
@@ -106,8 +126,14 @@ export const HomeContent = ({
 
   const handleSend = () => {
     const text = inputText.trim();
-    if (!text) return;
-    window.location.href = `/conversation?q=${encodeURIComponent(text)}`;
+    if (!text || isLoading) return;
+    setInputText("");
+    sendMessage({ text });
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    if (isLoading) return;
+    sendMessage({ text: prompt });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -119,59 +145,141 @@ export const HomeContent = ({
 
   return (
     <>
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4 pb-48">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)]">
-          <Bot
-            size={28}
-            className="text-[var(--color-accent)]"
-            aria-hidden="true"
-          />
-        </div>
-
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-foreground)]">
-            {greeting}
-          </h1>
-          <p className="max-w-sm text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
-            Below is a quick summary of your wellbeing and action items
-          </p>
-        </div>
-
-        {hasSummary ? (
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            {upcomingAppointments > 0 && (
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
-                <Calendar
-                  size={16}
+      <div className="flex flex-1 flex-col pb-52">
+        <AnimatePresence mode="wait">
+          {!hasMessages ? (
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+              className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)]">
+                <Bot
+                  size={28}
                   className="text-[var(--color-accent)]"
                   aria-hidden="true"
                 />
-                <span className="text-sm text-[var(--color-foreground)]">
-                  {upcomingAppointments} upcoming{" "}
-                  {upcomingAppointments === 1 ? "appointment" : "appointments"}
-                </span>
               </div>
-            )}
-            {actionItemCount > 0 && (
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
-                <ListChecks
-                  size={16}
-                  className="text-[var(--color-accent)]"
-                  aria-hidden="true"
-                />
-                <span className="text-sm text-[var(--color-foreground)]">
-                  {actionItemCount} action{" "}
-                  {actionItemCount === 1 ? "item" : "items"}
-                </span>
+
+              <div className="flex flex-col items-center gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-foreground)]">
+                  {greeting}
+                </h1>
+                <p className="max-w-sm text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
+                  Below is a quick summary of your wellbeing and action items
+                </p>
               </div>
-            )}
-          </div>
-        ) : (
-          <p className="max-w-sm text-center text-sm text-[var(--color-muted)]">
-            No upcoming appointments or action items. Check back after your next
-            visit.
-          </p>
-        )}
+
+              {hasSummary ? (
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  {upcomingAppointments > 0 && (
+                    <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
+                      <Calendar
+                        size={16}
+                        className="text-[var(--color-accent)]"
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm text-[var(--color-foreground)]">
+                        {upcomingAppointments} upcoming{" "}
+                        {upcomingAppointments === 1
+                          ? "appointment"
+                          : "appointments"}
+                      </span>
+                    </div>
+                  )}
+                  {actionItemCount > 0 && (
+                    <div className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
+                      <ListChecks
+                        size={16}
+                        className="text-[var(--color-accent)]"
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm text-[var(--color-foreground)]">
+                        {actionItemCount} action{" "}
+                        {actionItemCount === 1 ? "item" : "items"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="max-w-sm text-center text-sm text-[var(--color-muted)]">
+                  No upcoming appointments or action items. Check back after
+                  your next visit.
+                </p>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15 }}
+              className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6"
+            >
+              {messages.map((message, i) => {
+                const text = getMessageText(message);
+                if (!text) return null;
+                const isUser = message.role === "user";
+
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.25,
+                      delay: i === messages.length - 1 ? 0.05 : 0,
+                    }}
+                    className="flex gap-3"
+                  >
+                    <div
+                      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                        isUser
+                          ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
+                          : "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+                      }`}
+                    >
+                      {isUser ? (
+                        <User size={14} aria-hidden="true" />
+                      ) : (
+                        <Bot size={14} aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="mb-1 text-xs font-medium text-[var(--color-muted)]">
+                        {isUser ? "You" : "WellSaid"}
+                      </p>
+                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--color-foreground)]">
+                        {text}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {status === "submitted" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-3"
+                >
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                    <Bot size={14} aria-hidden="true" />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 text-sm text-[var(--color-muted)]">
+                    <Loader2 size={14} className="animate-spin" />
+                    Thinking...
+                  </div>
+                </motion.div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-[var(--color-surface)] shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
@@ -200,12 +308,11 @@ export const HomeContent = ({
 
           <button
             type="button"
-            onClick={() =>
-              (window.location.href = `/conversation?q=${encodeURIComponent(QUICK_PROMPTS[promptIndex])}`)
-            }
+            onClick={() => handlePromptClick(QUICK_PROMPTS[promptIndex])}
+            disabled={isLoading}
             tabIndex={0}
             aria-label={QUICK_PROMPTS[promptIndex]}
-            className="mb-3 flex w-full items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/40 hover:shadow-sm"
+            className="mb-3 flex w-full items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-left transition-all hover:border-[var(--color-accent)]/40 hover:shadow-sm disabled:opacity-50"
           >
             <MessageCircle
               size={15}
@@ -255,19 +362,26 @@ export const HomeContent = ({
               onKeyDown={handleKeyDown}
               placeholder="Ask any question..."
               readOnly={voiceActive}
+              disabled={isLoading}
               aria-label="Chat input"
-              className="h-11 flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+              className="h-11 flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10 disabled:opacity-50"
             />
 
             <button
               type="button"
               onClick={handleSend}
-              disabled={!(voiceActive ? voiceText : inputText).trim()}
+              disabled={
+                !(voiceActive ? voiceText : inputText).trim() || isLoading
+              }
               aria-label="Send"
               tabIndex={0}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-foreground)] text-[var(--color-background)] transition-all hover:opacity-90 active:scale-90 disabled:opacity-30"
             >
-              <Send size={16} />
+              {isLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} />
+              )}
             </button>
           </div>
         </div>
