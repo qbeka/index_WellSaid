@@ -68,7 +68,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.maxAlternatives = 3;
+      (recognition as unknown as Record<string, number>).maxAlternatives = 3;
       recognition.lang = LANG_TO_BCP47[sourceLang] || "en-US";
 
       let finalTranscript = "";
