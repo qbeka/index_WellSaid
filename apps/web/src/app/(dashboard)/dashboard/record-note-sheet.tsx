@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useTranscription } from "@/hooks/use-transcription";
 import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
+import { useTranslation } from "@/i18n";
 
 type RecordNoteSheetProps = {
   onClose: () => void;
@@ -16,6 +17,7 @@ export const RecordNoteSheet = ({
   onClose,
   language = "en",
 }: RecordNoteSheetProps) => {
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const { transcript, isListening, start, stop } = useTranscription({
     language,
@@ -85,11 +87,10 @@ export const RecordNoteSheet = ({
 
           <div className="mb-6 flex flex-col items-center gap-2">
             <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
-              Record Health Note
+              {t("recordNote.title")}
             </h2>
             <p className="text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
-              Record health incidents you&apos;re experiencing, and we&apos;ll
-              use this information to help you.
+              {t("recordNote.subtitle")}
             </p>
           </div>
 
@@ -101,8 +102,8 @@ export const RecordNoteSheet = ({
             ) : (
               <p className="text-center text-[15px] text-[var(--color-muted)]">
                 {isListening
-                  ? "Listening..."
-                  : "Your transcript will appear here"}
+                  ? t("recordNote.listening")
+                  : t("recordNote.transcriptPlaceholder")}
               </p>
             )}
           </div>
@@ -110,7 +111,7 @@ export const RecordNoteSheet = ({
           {saving ? (
             <div className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white">
               <Loader2 size={20} className="animate-spin" />
-              Processing...
+              {t("common.processing")}
             </div>
           ) : isListening ? (
             <button
@@ -121,7 +122,7 @@ export const RecordNoteSheet = ({
               className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
               <Square size={20} aria-hidden="true" />
-              Stop Recording
+              {t("recordNote.stopRecording")}
             </button>
           ) : (
             <button
@@ -132,7 +133,7 @@ export const RecordNoteSheet = ({
               className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
               <Mic size={20} aria-hidden="true" />
-              Start Recording
+              {t("recordNote.startRecording")}
             </button>
           )}
         </div>

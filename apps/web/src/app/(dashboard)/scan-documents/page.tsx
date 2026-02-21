@@ -4,8 +4,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, Upload, Loader2, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "@/i18n";
 
 const ScanDocumentsPage = () => {
+  const { t } = useTranslation();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [cameraFailed, setCameraFailed] = useState(false);
@@ -53,11 +55,11 @@ const ScanDocumentsPage = () => {
         router.refresh();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to process document.");
+        setError(data.error || t("scan.failedToProcess"));
         setCapturing(false);
       }
     } catch {
-      setError("Failed to process document. Please try again.");
+      setError(t("scan.failedToProcess"));
       setCapturing(false);
     }
   };
@@ -98,10 +100,10 @@ const ScanDocumentsPage = () => {
         </div>
         <div className="flex flex-col items-center gap-2">
           <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
-            Camera unavailable
+            {t("scan.cameraUnavailable")}
           </h2>
           <p className="max-w-xs text-center text-[15px] text-[var(--color-muted)]">
-            Upload a photo of your document instead.
+            {t("scan.uploadInstead")}
           </p>
         </div>
 
@@ -116,18 +118,18 @@ const ScanDocumentsPage = () => {
         {capturing ? (
           <div className="flex h-14 w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white">
             <Loader2 size={20} className="animate-spin" />
-            Processing...
+            {t("common.processing")}
           </div>
         ) : (
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            aria-label="Upload a document photo"
+            aria-label={t("scan.uploadPhoto")}
             tabIndex={0}
             className="flex h-14 w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <Upload size={20} aria-hidden="true" />
-            Upload document photo
+            {t("scan.uploadPhoto")}
           </button>
         )}
 
@@ -142,7 +144,7 @@ const ScanDocumentsPage = () => {
           tabIndex={0}
           className="text-[14px] font-medium text-[var(--color-accent)]"
         >
-          Back to Documents
+          {t("scan.backToDocuments")}
         </Link>
       </div>
     );
@@ -180,7 +182,7 @@ const ScanDocumentsPage = () => {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={capturing}
-          aria-label="Upload photo from gallery"
+          aria-label={t("scan.uploadFromGallery")}
           tabIndex={0}
           className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white transition-all active:scale-90 disabled:opacity-50"
         >
@@ -191,7 +193,7 @@ const ScanDocumentsPage = () => {
           type="button"
           onClick={handleCapture}
           disabled={capturing || !stream}
-          aria-label="Capture document"
+          aria-label={t("scan.captureDocument")}
           tabIndex={0}
           className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-[var(--color-foreground)] shadow-lg transition-all active:scale-90 disabled:opacity-50"
         >

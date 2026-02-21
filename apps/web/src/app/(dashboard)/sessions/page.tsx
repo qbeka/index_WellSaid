@@ -1,5 +1,6 @@
-import { MessageSquare, Clock, ChevronRight, Mic } from "lucide-react";
+import { MessageSquare, Clock, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { t } from "@/i18n";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -9,6 +10,18 @@ const SessionsPage = async () => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let lang = "en";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", user.id)
+      .single();
+    if (profile?.preferred_language) {
+      lang = profile.preferred_language;
+    }
+  }
 
   const { data: sessions } = await supabase
     .from("sessions")
@@ -21,7 +34,7 @@ const SessionsPage = async () => {
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-[var(--color-muted)]">
-        Visit summaries from your appointments.
+        {t(lang, "sessions.subtitle")}
       </p>
 
       {hasSessions ? (
@@ -78,8 +91,8 @@ const SessionsPage = async () => {
       ) : (
         <EmptyState
           icon={MessageSquare}
-          title="No past sessions yet"
-          description="Visit summaries from your appointments will show up here after you complete a conversation and save the summary."
+          title={t(lang, "sessions.empty")}
+          description={t(lang, "sessions.emptyDesc")}
         />
       )}
     </div>

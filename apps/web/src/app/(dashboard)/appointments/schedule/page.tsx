@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslation } from "@/i18n";
 import {
   Phone,
   Loader2,
@@ -31,10 +32,12 @@ type AppointmentResult = {
 };
 
 const ScheduleAppointmentPage = () => {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<"idle" | "calling" | "done" | "error">(
     "idle"
   );
   const [reason, setReason] = useState("");
+  const [doctorName, setDoctorName] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
   const [notes, setNotes] = useState("");
@@ -72,6 +75,7 @@ const ScheduleAppointmentPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reason: reason.trim(),
+          doctorName: doctorName.trim() || undefined,
           preferredDate: preferredDate || undefined,
           preferredTime: preferredTime || undefined,
           notes: notes.trim() || undefined,
@@ -79,7 +83,7 @@ const ScheduleAppointmentPage = () => {
       });
 
       if (!res.ok || !res.body) {
-        setErrorMsg("Failed to start the call. Please try again.");
+        setErrorMsg(t("schedule.failedToStart"));
         setPhase("error");
         return;
       }
@@ -115,7 +119,7 @@ const ScheduleAppointmentPage = () => {
         }
       }
     } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+      setErrorMsg(t("common.somethingWrong"));
       setPhase("error");
     }
   };
@@ -142,11 +146,10 @@ const ScheduleAppointmentPage = () => {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
-          Schedule Appointment
+          {t("schedule.title")}
         </h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Fill in the details below and we&apos;ll schedule an appointment with
-          your healthcare provider.
+          {t("schedule.subtitle")}
         </p>
       </div>
 
@@ -157,14 +160,31 @@ const ScheduleAppointmentPage = () => {
               htmlFor="reason"
               className="text-[13px] font-medium text-[var(--color-foreground)]"
             >
-              Reason for visit
+              {t("schedule.reason")}
             </label>
             <input
               id="reason"
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Annual checkup, headache follow-up"
+              placeholder={t("schedule.reasonPlaceholder")}
+              className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="doctorName"
+              className="text-[13px] font-medium text-[var(--color-foreground)]"
+            >
+              {t("schedule.doctor")}
+            </label>
+            <input
+              id="doctorName"
+              type="text"
+              value={doctorName}
+              onChange={(e) => setDoctorName(e.target.value)}
+              placeholder={t("schedule.doctorPlaceholder")}
               className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
             />
           </div>
@@ -175,7 +195,7 @@ const ScheduleAppointmentPage = () => {
                 htmlFor="prefDate"
                 className="text-[13px] font-medium text-[var(--color-foreground)]"
               >
-                Preferred date (optional)
+                {t("schedule.preferredDate")}
               </label>
               <input
                 id="prefDate"
@@ -190,7 +210,7 @@ const ScheduleAppointmentPage = () => {
                 htmlFor="prefTime"
                 className="text-[13px] font-medium text-[var(--color-foreground)]"
               >
-                Preferred time (optional)
+                {t("schedule.preferredTime")}
               </label>
               <input
                 id="prefTime"
@@ -207,13 +227,13 @@ const ScheduleAppointmentPage = () => {
               htmlFor="notes"
               className="text-[13px] font-medium text-[var(--color-foreground)]"
             >
-              Additional notes (optional)
+              {t("schedule.notes")}
             </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any details you'd like the scheduler to know"
+              placeholder={t("schedule.notesPlaceholder")}
               rows={3}
               className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
             />
@@ -229,7 +249,7 @@ const ScheduleAppointmentPage = () => {
           {statuses.length === 0 && phase === "calling" ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-[var(--color-muted)]">
               <Loader2 size={16} className="animate-spin" />
-              Starting call...
+              {t("schedule.startingCall")}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -267,7 +287,7 @@ const ScheduleAppointmentPage = () => {
               {phase === "calling" && (
                 <div className="flex items-center gap-2 pt-2 text-sm text-[var(--color-muted)]">
                   <Loader2 size={14} className="animate-spin" />
-                  Working...
+                  {t("schedule.working")}
                 </div>
               )}
             </div>
@@ -284,7 +304,7 @@ const ScheduleAppointmentPage = () => {
           <div className="mb-3 flex items-center gap-2">
             <CheckCircle size={18} className="text-[var(--color-success)]" />
             <span className="text-sm font-semibold text-[var(--color-foreground)]">
-              Appointment Confirmed
+              {t("schedule.appointmentConfirmed")}
             </span>
           </div>
 
@@ -344,7 +364,7 @@ const ScheduleAppointmentPage = () => {
             className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <Phone size={18} aria-hidden="true" />
-            Start Scheduling
+            {t("schedule.startScheduling")}
           </button>
         )}
 
@@ -359,7 +379,7 @@ const ScheduleAppointmentPage = () => {
             tabIndex={0}
             className="flex h-14 w-full items-center justify-center rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
-            View All Appointments
+            {t("schedule.viewAllAppointments")}
           </button>
         )}
 
@@ -375,7 +395,7 @@ const ScheduleAppointmentPage = () => {
             className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             <RotateCcw size={16} aria-hidden="true" />
-            Try Again
+            {t("common.tryAgain")}
           </button>
         )}
 
@@ -386,7 +406,7 @@ const ScheduleAppointmentPage = () => {
             tabIndex={0}
             className="flex h-12 w-full items-center justify-center rounded-2xl bg-[var(--color-background-muted)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-border)] active:scale-[0.98]"
           >
-            Back to Home
+            {t("common.backToHome")}
           </Link>
         )}
       </div>

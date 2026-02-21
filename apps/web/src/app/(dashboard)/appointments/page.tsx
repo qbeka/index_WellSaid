@@ -1,5 +1,7 @@
-import { Calendar, ChevronRight, MapPin, User, Clock, Phone } from "lucide-react";
+import { Calendar, ChevronRight, MapPin, User, Clock } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { t } from "@/i18n";
+import { createClient } from "@/lib/supabase/server";
 import { getAppointments } from "./actions";
 import Link from "next/link";
 
@@ -22,46 +24,70 @@ const formatTime = (timeStr: string) => {
 
 const statusConfig = {
   upcoming: {
-    label: "Upcoming",
     className: "bg-[var(--color-accent-soft)] text-[var(--color-accent)]",
   },
   completed: {
-    label: "Completed",
     className: "bg-[var(--color-success)]/10 text-[var(--color-success)]",
   },
   cancelled: {
-    label: "Cancelled",
     className: "bg-[var(--color-border)] text-[var(--color-muted)]",
   },
 } as const;
 
 const AppointmentsPage = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let lang = "en";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", user.id)
+      .single();
+    if (profile?.preferred_language) {
+      lang = profile.preferred_language;
+    }
+  }
+
   const appointments = await getAppointments();
 
   const upcoming = appointments.filter((a) => a.status === "upcoming");
   const past = appointments.filter((a) => a.status !== "upcoming");
 
+  const statusLabels = {
+    upcoming: t(lang, "common.upcoming"),
+    completed: t(lang, "common.completed"),
+    cancelled: t(lang, "common.cancelled"),
+  };
+
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-[var(--color-muted)]">
-        Your scheduled appointments, updated in real time.
+        {t(lang, "appointments.subtitle")}
       </p>
 
       {appointments.length === 0 ? (
         <EmptyState
           icon={Calendar}
-          title="No appointments yet"
-          description="Your scheduled appointments will show up here. Schedule via the conversation or schedule flow."
+          title={t(lang, "appointments.empty")}
+          description={t(lang, "appointments.emptyDesc")}
         />
       ) : (
         <div className="flex flex-col gap-6">
           {upcoming.length > 0 && (
             <div className="flex flex-col gap-2">
               <h2 className="text-sm font-medium text-[var(--color-muted)]">
-                Upcoming
+                {t(lang, "common.upcoming")}
               </h2>
               {upcoming.map((apt) => (
-                <AppointmentCard key={apt.id} appointment={apt} />
+                <AppointmentCard
+                  key={apt.id}
+                  appointment={apt}
+                  statusLabels={statusLabels}
+                />
               ))}
             </div>
           )}
@@ -69,10 +95,14 @@ const AppointmentsPage = async () => {
           {past.length > 0 && (
             <div className="flex flex-col gap-2">
               <h2 className="text-sm font-medium text-[var(--color-muted)]">
-                Past
+                {t(lang, "appointments.past")}
               </h2>
               {past.map((apt) => (
-                <AppointmentCard key={apt.id} appointment={apt} />
+                <AppointmentCard
+                  key={apt.id}
+                  appointment={apt}
+                  statusLabels={statusLabels}
+                />
               ))}
             </div>
           )}
@@ -92,8 +122,15 @@ type AppointmentRow = {
   status: "upcoming" | "completed" | "cancelled";
 };
 
-const AppointmentCard = ({ appointment }: { appointment: AppointmentRow }) => {
+const AppointmentCard = ({
+  appointment,
+  statusLabels,
+}: {
+  appointment: AppointmentRow;
+  statusLabels: { upcoming: string; completed: string; cancelled: string };
+}) => {
   const statusInfo = statusConfig[appointment.status];
+  const label = statusLabels[appointment.status];
 
   return (
     <Link
@@ -110,7 +147,7 @@ const AppointmentCard = ({ appointment }: { appointment: AppointmentRow }) => {
           <span
             className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${statusInfo.className}`}
           >
-            {statusInfo.label}
+            {label}
           </span>
         </div>
 

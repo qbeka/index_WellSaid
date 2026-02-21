@@ -16,10 +16,15 @@ import {
   Languages,
   LogOut,
   X,
+  ChevronDown,
+  Check,
+  Phone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useTranslation } from "@/i18n";
+import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
 
 type SidebarProps = {
   open: boolean;
@@ -27,24 +32,31 @@ type SidebarProps = {
 };
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/conversation", label: "Record Visit", icon: ClipboardPen },
-  { href: "/translate", label: "Translate", icon: Languages },
-  { href: "/health-notes", label: "Health Notes", icon: FileText },
-  { href: "/appointments", label: "Appointments", icon: Calendar },
-  { href: "/sessions", label: "Past Sessions", icon: MessageSquare },
-  { href: "/documents", label: "Documents", icon: FolderOpen },
-  { href: "/scan-documents", label: "Scan Documents", icon: ScanLine },
-  { href: "/action-items", label: "Action Items", icon: ListChecks },
+  { href: "/dashboard", labelKey: "nav.home", icon: Home },
+  { href: "/conversation", labelKey: "nav.recordVisit", icon: ClipboardPen },
+  { href: "/translate", labelKey: "nav.translate", icon: Languages },
+  { href: "/health-notes", labelKey: "nav.healthNotes", icon: FileText },
+  { href: "/appointments", labelKey: "nav.appointments", icon: Calendar },
+  { href: "/sessions", labelKey: "nav.pastSessions", icon: MessageSquare },
+  { href: "/documents", labelKey: "nav.documents", icon: FolderOpen },
+  { href: "/scan-documents", labelKey: "nav.scanDocuments", icon: ScanLine },
+  { href: "/action-items", labelKey: "nav.actionItems", icon: ListChecks },
 ] as const;
 
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { t, lang } = useTranslation();
   const [userInfo, setUserInfo] = useState<{
     name: string;
     avatarUrl: string | null;
   }>({ name: "", avatarUrl: null });
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hospitalPhone, setHospitalPhone] = useState("");
+  const [selectedLang, setSelectedLang] = useState(lang);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,6 +73,17 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
           user.user_metadata?.picture ||
           null;
         setUserInfo({ name: fullName, avatarUrl: avatar });
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("hospital_phone, preferred_language")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setHospitalPhone(profile.hospital_phone || "");
+          setSelectedLang(profile.preferred_language || "en");
+        }
       }
     };
 
@@ -92,6 +115,32 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
     router.push("/login");
   };
 
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({
+          hospital_phone: hospitalPhone.trim() || null,
+          preferred_language: selectedLang,
+        })
+        .eq("id", user.id);
+    }
+
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+
+    if (selectedLang !== lang) {
+      router.refresh();
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -111,38 +160,121 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
         role="dialog"
         aria-modal={open}
-        aria-label="Navigation menu"
+        aria-label={t("common.menu")}
         className="fixed left-0 top-0 z-50 flex h-full w-80 flex-col bg-[var(--color-surface)] shadow-xl"
       >
-        <div className="flex h-18 items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
-          <div className="flex items-center gap-3 overflow-hidden">
-            {userInfo.avatarUrl ? (
-              <Image
-                src={userInfo.avatarUrl}
-                alt=""
-                width={40}
-                height={40}
-                className="h-10 w-10 shrink-0 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-[var(--color-accent-foreground)]">
-                {userInfo.name
-                  ? userInfo.name
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()
-                  : "?"}
-              </div>
+        <div className="border-b border-[var(--color-border)] px-5 py-4">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            aria-label={t("profile.settings")}
+            tabIndex={0}
+            className="flex w-full items-center justify-between"
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              {userInfo.avatarUrl ? (
+                <Image
+                  src={userInfo.avatarUrl}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-[var(--color-accent-foreground)]">
+                  {userInfo.name
+                    ? userInfo.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "?"}
+                </div>
+              )}
+              <span className="truncate text-[15px] font-semibold text-[var(--color-foreground)]">
+                {userInfo.name || t("common.loading")}
+              </span>
+            </div>
+            <ChevronDown
+              size={18}
+              className={`shrink-0 text-[var(--color-muted)] transition-transform ${settingsOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          <AnimatePresence>
+            {settingsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col gap-3 pt-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--color-muted)]">
+                      <Phone size={12} />
+                      {t("profile.hospitalPhone")}
+                    </label>
+                    <input
+                      type="tel"
+                      value={hospitalPhone}
+                      onChange={(e) => setHospitalPhone(e.target.value)}
+                      placeholder="(555) 555-5555"
+                      aria-label={t("profile.hospitalPhone")}
+                      className="h-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-[13px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--color-muted)]">
+                      <Languages size={12} />
+                      {t("profile.language")}
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {SUPPORTED_LANGUAGES.map(({ code, label }) => (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setSelectedLang(code)}
+                          className={`flex h-9 items-center justify-between rounded-lg border px-3 text-[12px] font-medium transition-colors ${
+                            selectedLang === code
+                              ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                              : "border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] hover:bg-[var(--color-background-muted)]"
+                          }`}
+                        >
+                          {label}
+                          {selectedLang === code && (
+                            <Check size={12} className="shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    disabled={saving}
+                    className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] text-[13px] font-medium text-white transition-opacity disabled:opacity-50"
+                  >
+                    {saving
+                      ? t("common.saving")
+                      : saved
+                        ? t("profile.saved")
+                        : t("common.save")}
+                  </button>
+                </div>
+              </motion.div>
             )}
-            <span className="truncate text-[15px] font-semibold text-[var(--color-foreground)]">
-              {userInfo.name || "Loading..."}
-            </span>
-          </div>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex items-center justify-end border-b border-[var(--color-border)] px-5 py-2">
           <button
             onClick={onClose}
-            aria-label="Close navigation"
+            aria-label={t("common.close")}
             tabIndex={0}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
           >
@@ -152,8 +284,9 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="flex flex-col gap-1.5">
-            {NAV_ITEMS.map(({ href, label, icon: Icon }, i) => {
+            {NAV_ITEMS.map(({ href, labelKey, icon: Icon }, i) => {
               const isActive = pathname === href;
+              const label = t(labelKey);
               return (
                 <motion.li
                   key={href}
@@ -185,12 +318,12 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         <div className="border-t border-[var(--color-border)] px-3 py-4">
           <button
             onClick={handleSignOut}
-            aria-label="Sign out"
+            aria-label={t("common.signOut")}
             tabIndex={0}
             className="flex h-12 w-full items-center gap-3.5 rounded-xl px-4 text-[15px] font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)] hover:text-[var(--color-danger)]"
           >
             <LogOut size={20} aria-hidden="true" />
-            Sign out
+            {t("common.signOut")}
           </button>
         </div>
       </motion.aside>

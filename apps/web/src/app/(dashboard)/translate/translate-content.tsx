@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "@/i18n";
 import {
   Mic,
   Square,
@@ -20,6 +21,7 @@ type TranslateContentProps = {
 };
 
 export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => {
+  const { t } = useTranslation();
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [detectedLang, setDetectedLang] = useState("");
@@ -80,7 +82,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
         setDetectedLang(data.detectedSourceLanguage);
       }
     } catch {
-      setTranslatedText("Translation failed. Please try again.");
+      setTranslatedText(t("translate.translationFailed"));
     } finally {
       setLoading(false);
     }
@@ -111,7 +113,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-[var(--color-muted)]">
-        Speak or type in any language. We&apos;ll translate it for you.
+        {t("translate.subtitle")}
       </p>
 
       <div className="flex flex-col gap-4">
@@ -126,7 +128,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                 tabIndex={0}
                 className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-background-muted)]"
               >
-                Speaking: {sourceLabel}
+                {t("translate.speaking", { lang: sourceLabel })}
                 <ChevronDown size={12} className="text-[var(--color-muted)]" />
               </button>
 
@@ -169,7 +171,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
             </div>
             {detectedLang && (
               <span className="text-xs text-[var(--color-muted)]">
-                Detected: {detectedLang}
+                {t("translate.detected", { lang: detectedLang })}
               </span>
             )}
           </div>
@@ -177,7 +179,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
           <textarea
             value={sourceText}
             onChange={(e) => setSourceText(e.target.value)}
-            placeholder="Tap the microphone below to speak, or type here..."
+            placeholder={t("translate.inputPlaceholder")}
             rows={4}
             disabled={isListening}
             aria-label="Source text"
@@ -190,7 +192,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                 type="button"
                 onClick={() => handleSpeak(sourceText)}
                 disabled={speaking}
-                aria-label="Listen to source text"
+                aria-label={t("translate.listenSource")}
                 tabIndex={0}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
               >
@@ -205,7 +207,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
             type="button"
             onClick={handleSwap}
             disabled={!translatedText}
-            aria-label="Swap languages"
+            aria-label={t("translate.swapLanguages")}
             tabIndex={0}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] transition-all hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] disabled:opacity-30"
           >
@@ -221,7 +223,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
               tabIndex={0}
               className="flex h-10 items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm font-medium text-[var(--color-foreground)] transition-all hover:border-[var(--color-accent)]/30"
             >
-              Translate to: {targetLabel}
+              {t("translate.translateTo", { lang: targetLabel })}
               <ChevronDown size={14} className="text-[var(--color-muted)]" />
             </button>
 
@@ -274,7 +276,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
           {loading ? (
             <div className="flex items-center gap-2 py-6 text-sm text-[var(--color-muted)]">
               <Loader2 size={14} className="animate-spin" />
-              Translating...
+              {t("translate.translating")}
             </div>
           ) : translatedText ? (
             <>
@@ -286,7 +288,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                   type="button"
                   onClick={() => handleSpeak(translatedText)}
                   disabled={speaking}
-                  aria-label="Listen to translation"
+                  aria-label={t("translate.listenTranslation")}
                   tabIndex={0}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
                 >
@@ -295,7 +297,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
                 <button
                   type="button"
                   onClick={() => handleCopy(translatedText)}
-                  aria-label="Copy translation"
+                  aria-label={t("translate.copyTranslation")}
                   tabIndex={0}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-border)]"
                 >
@@ -305,7 +307,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
             </>
           ) : (
             <p className="py-6 text-sm text-[var(--color-muted)]">
-              Translation will appear here
+              {t("translate.translationPlaceholder")}
             </p>
           )}
         </div>
@@ -317,34 +319,34 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
             <button
               type="button"
               onClick={handleStopRecording}
-              aria-label="Stop recording"
+              aria-label={t("translate.stopRecording")}
               tabIndex={0}
               className="flex h-14 w-full max-w-sm items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
               <Square size={18} aria-hidden="true" />
-              Stop and Translate
+              {t("translate.stopAndTranslate")}
             </button>
           ) : (
             <div className="flex w-full max-w-sm flex-col gap-2">
               <button
                 type="button"
                 onClick={handleStartRecording}
-                aria-label="Start speaking"
+                aria-label={t("translate.startSpeaking")}
                 tabIndex={0}
                 className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
               >
                 <Mic size={18} aria-hidden="true" />
-                Speak to Translate
+                {t("translate.speakToTranslate")}
               </button>
               {sourceText.trim() && !loading && (
                 <button
                   type="button"
                   onClick={() => handleTranslate()}
-                  aria-label="Translate text"
+                  aria-label={t("translate.translateText")}
                   tabIndex={0}
                   className="flex h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-background-muted)] active:scale-[0.98]"
                 >
-                  Translate typed text
+                  {t("translate.translateText")}
                 </button>
               )}
             </div>

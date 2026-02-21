@@ -50,6 +50,7 @@ async function vapiRequest(
 
 async function runVapiCall(
   reason: string,
+  doctorName: string,
   preferredDate: string,
   preferredTime: string,
   notes: string,
@@ -79,6 +80,7 @@ async function runVapiCall(
       variableValues: {
         patientName: patientName || "a patient",
         reason: reason || "general checkup",
+        doctorName: doctorName || "any available doctor",
         preferredDate: preferredDate || "next available",
         preferredTime: preferredTime || "any time",
         notes: notes || "none",
@@ -88,7 +90,7 @@ async function runVapiCall(
     callPayload.assistant = {
       name: "Riley",
       firstMessageMode: "assistant-speaks-first",
-      firstMessage: `Hi there, my name is Riley and I'm calling from WellSaid Health on behalf of ${patientName || "a patient"}. I'd like to schedule an appointment for ${reason || "general checkup"}. Do you have a moment to help me with that?`,
+      firstMessage: `Hi there, my name is Riley and I'm calling from WellSaid Health on behalf of ${patientName || "a patient"}. I'd like to schedule an appointment${doctorName ? ` with ${doctorName}` : ""} for ${reason || "general checkup"}. Do you have a moment to help me with that?`,
       transcriber: {
         provider: "deepgram",
         model: "nova-2",
@@ -104,6 +106,7 @@ async function runVapiCall(
 
 Patient: ${patientName}
 Reason for visit: ${reason || "general checkup"}
+Requested doctor: ${doctorName || "any available doctor"}
 Preferred date: ${preferredDate || "next available"}
 Preferred time: ${preferredTime || "any time"}
 Additional notes: ${notes || "none"}
@@ -201,6 +204,7 @@ Rules:
 
 async function runSimulation(
   reason: string,
+  doctorName: string,
   preferredDate: string,
   preferredTime: string,
   notes: string,
@@ -255,12 +259,12 @@ async function runSimulation(
   );
   await new Promise((r) => setTimeout(r, 2000));
 
-  return `Simulated call for ${patientName || "patient"}. Reason: ${reason || "general checkup"}. Preferred date: ${preferredDate || "next available"}. Preferred time: ${preferredTime || "any"}. Notes: ${notes || "none"}.`;
+  return `Simulated call for ${patientName || "patient"}. Reason: ${reason || "general checkup"}. Doctor: ${doctorName || "any available"}. Preferred date: ${preferredDate || "next available"}. Preferred time: ${preferredTime || "any"}. Notes: ${notes || "none"}.`;
 }
 
 export const POST = async (req: Request) => {
   try {
-    const { reason, preferredDate, preferredTime, notes } = await req.json();
+    const { reason, doctorName, preferredDate, preferredTime, notes } = await req.json();
     const supabase = await createClient();
 
     const {
@@ -302,6 +306,7 @@ export const POST = async (req: Request) => {
           if (useVapi) {
             transcript = await runVapiCall(
               reason,
+              doctorName || "",
               preferredDate,
               preferredTime,
               notes,
@@ -312,6 +317,7 @@ export const POST = async (req: Request) => {
           } else {
             transcript = await runSimulation(
               reason,
+              doctorName || "",
               preferredDate,
               preferredTime,
               notes,
@@ -333,6 +339,7 @@ export const POST = async (req: Request) => {
 
 Patient: ${patientName || "the patient"}
 Reason: ${reason || "general checkup"}
+Requested doctor: ${doctorName || "any available"}
 Preferred date: ${preferredDate || "next available"}
 Preferred time: ${preferredTime || "any time"}
 Additional notes: ${notes || "none"}

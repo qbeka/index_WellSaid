@@ -5,6 +5,7 @@ import { Mic, Square, Loader2, RotateCcw, PenLine, SendHorizonal } from "lucide-
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/i18n";
 import { useTranscription } from "@/hooks/use-transcription";
 
 type Phase = "ready" | "recording" | "typing" | "processing";
@@ -14,6 +15,7 @@ type ConversationContentProps = {
 };
 
 const ConversationContent = ({ preferredLanguage }: ConversationContentProps) => {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("ready");
   const [typedText, setTypedText] = useState("");
   const [elapsed, setElapsed] = useState(0);
@@ -62,7 +64,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
         setElapsed((prev) => prev + 1);
       }, 1000);
     } catch {
-      setError("Could not access microphone.");
+      setError(t("conversation.micError"));
     }
   };
 
@@ -72,7 +74,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
 
     if (!transcript.trim() || transcript.trim().length < 10) {
       setPhase("ready");
-      setError("Recording was too short. Please try again.");
+      setError(t("conversation.tooShort"));
       return;
     }
 
@@ -81,7 +83,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
 
   const handleSubmitText = async () => {
     if (!typedText.trim() || typedText.trim().length < 10) {
-      setError("Please write more detail about your visit.");
+      setError(t("conversation.moreDetail"));
       return;
     }
     await submitVisit(typedText.trim());
@@ -103,11 +105,11 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
       if (res.ok) {
         router.push(`/sessions/${data.session.id}`);
       } else {
-        setError(data.error || "Failed to process visit.");
+        setError(data.error || t("conversation.failedToProcess"));
         setPhase("ready");
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("common.somethingWrong"));
       setPhase("ready");
     }
   };
@@ -116,7 +118,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
     <div className="-mx-5 flex min-h-[calc(100vh-3.5rem)] flex-col">
       <div className="flex flex-1 flex-col px-4">
         <p className="py-4 text-[15px] text-[var(--color-foreground)]">
-          Record a doctor&apos;s visit on {today}
+          {t("conversation.title")} on {today}
         </p>
 
         <div className="flex flex-1 flex-col rounded-2xl bg-[var(--color-background-muted)]">
@@ -133,7 +135,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                   className="animate-spin text-[var(--color-accent)]"
                 />
                 <p className="text-[15px] text-[var(--color-muted)]">
-                  Processing your visit...
+                  {t("conversation.processing")}
                 </p>
               </motion.div>
             ) : phase === "recording" ? (
@@ -145,7 +147,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
               >
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-xs font-medium text-[var(--color-muted)]">
-                    Recording {formatTime(elapsed)}
+                    {t("conversation.recording")} {formatTime(elapsed)}
                   </span>
                   <motion.div
                     animate={{ opacity: [1, 0.3, 1] }}
@@ -160,7 +162,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                     </p>
                   ) : (
                     <p className="text-[15px] text-[var(--color-muted)]">
-                      Listening for speech...
+                      {t("conversation.listening")}
                     </p>
                   )}
                 </div>
@@ -173,13 +175,13 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                 className="flex flex-1 flex-col p-4"
               >
                 <span className="mb-3 text-xs font-medium text-[var(--color-muted)]">
-                  Write what happened during your visit
+                  {t("conversation.writePrompt")}
                 </span>
                 <textarea
                   ref={textareaRef}
                   value={typedText}
                   onChange={(e) => setTypedText(e.target.value)}
-                  placeholder="Describe your visit -- what the doctor said, diagnoses, medications, instructions..."
+                  placeholder={t("conversation.writePlaceholder")}
                   className="flex-1 resize-none bg-transparent text-[15px] leading-relaxed text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)]"
                 />
               </motion.div>
@@ -215,7 +217,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                   </button>
                 </div>
                 <p className="text-center text-[15px] text-[var(--color-muted)]">
-                  Record by voice or write what happened
+                  {t("conversation.recordOrWrite")}
                 </p>
                 {error && (
                   <p className="text-center text-[14px] text-[var(--color-danger)]">
@@ -237,7 +239,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
               className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-danger)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
             >
               <Square size={18} aria-hidden="true" />
-              End Visit Recording
+              {t("conversation.endRecording")}
             </button>
           ) : phase === "typing" ? (
             <div className="flex flex-col gap-2">
@@ -250,7 +252,7 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                 className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] text-[15px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
               >
                 <SendHorizonal size={18} aria-hidden="true" />
-                Submit Visit Notes
+                {t("conversation.submitNotes")}
               </button>
               {error && (
                 <p className="text-center text-[14px] text-[var(--color-danger)]">
@@ -264,22 +266,22 @@ const ConversationContent = ({ preferredLanguage }: ConversationContentProps) =>
                   setTypedText("");
                   setError("");
                 }}
-                aria-label="Go back"
+                aria-label={t("common.goBack")}
                 tabIndex={0}
                 className="flex h-11 w-full items-center justify-center rounded-2xl text-[14px] font-medium text-[var(--color-muted)] transition-all hover:bg-[var(--color-background-muted)]"
               >
-                Go back
+                {t("common.goBack")}
               </button>
             </div>
           ) : phase === "ready" ? (
             <Link
               href="/dashboard"
-              aria-label="Go back"
+              aria-label={t("common.backToHome")}
               tabIndex={0}
               className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-[var(--color-border)] text-[15px] font-medium text-[var(--color-muted)] transition-all hover:bg-[var(--color-background-muted)] active:scale-[0.98]"
             >
               <RotateCcw size={16} aria-hidden="true" />
-              Go back to home
+              {t("common.backToHome")}
             </Link>
           ) : null}
         </div>

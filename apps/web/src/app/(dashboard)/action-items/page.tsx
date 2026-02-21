@@ -1,5 +1,6 @@
 import { ListChecks, CheckCircle2, FileText } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { t } from "@/i18n";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -16,6 +17,18 @@ const ActionItemsPage = async () => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let lang = "en";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", user.id)
+      .single();
+    if (profile?.preferred_language) {
+      lang = profile.preferred_language;
+    }
+  }
 
   type NoteRow = {
     id: string;
@@ -77,14 +90,14 @@ const ActionItemsPage = async () => {
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-[var(--color-muted)]">
-        Follow-ups and tasks from your care team, updated in real time.
+        {t(lang, "actionItems.subtitle")}
       </p>
 
       {allItems.length === 0 ? (
         <EmptyState
           icon={ListChecks}
-          title="No action items yet"
-          description="Action items from your visits will show up here so you can track follow-ups and medications."
+          title={t(lang, "actionItems.empty")}
+          description={t(lang, "actionItems.emptyDesc")}
         />
       ) : (
         <div className="flex flex-col gap-2">

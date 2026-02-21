@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { User, Globe, Phone } from "lucide-react";
 import { LanguageSelect } from "@/components/language-select";
 import { completeOnboarding } from "./actions";
+import { t as translate } from "@/i18n";
 
 type Step = 1 | 2 | 3;
 
@@ -15,6 +16,12 @@ const OnboardingPage = () => {
   const [hospitalPhone, setHospitalPhone] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const lang = preferredLanguage || "en";
+  const t = useMemo(
+    () => (key: string, vars?: Record<string, string>) => translate(lang, key, vars),
+    [lang]
+  );
 
   const step1Valid = firstName.trim().length > 0 && lastName.trim().length > 0;
   const step2Valid = preferredLanguage.length > 0;
@@ -66,15 +73,15 @@ const OnboardingPage = () => {
   };
 
   const stepTitle = {
-    1: "What's your name?",
-    2: "What language do you prefer?",
-    3: "Your hospital's phone number",
+    1: t("onboarding.nameTitle"),
+    2: t("onboarding.langTitle"),
+    3: t("onboarding.phoneTitle"),
   };
 
   const stepSubtitle = {
-    1: "We'll use this to personalize your experience.",
-    2: "We'll communicate with you in this language.",
-    3: "Optional. We can help you schedule appointments.",
+    1: t("onboarding.nameSubtitle"),
+    2: t("onboarding.langSubtitle"),
+    3: t("onboarding.phoneSubtitle"),
   };
 
   return (
@@ -107,19 +114,19 @@ const OnboardingPage = () => {
           <>
             <input
               type="text"
-              placeholder="First name"
+              placeholder={t("onboarding.firstName")}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               autoFocus
-              aria-label="First name"
+              aria-label={t("onboarding.firstName")}
               className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
             />
             <input
               type="text"
-              placeholder="Last name"
+              placeholder={t("onboarding.lastName")}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              aria-label="Last name"
+              aria-label={t("onboarding.lastName")}
               className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
             />
           </>
@@ -139,7 +146,7 @@ const OnboardingPage = () => {
             value={hospitalPhone}
             onChange={(e) => setHospitalPhone(e.target.value)}
             autoFocus
-            aria-label="Hospital phone number"
+            aria-label={t("profile.hospitalPhone")}
             className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
           />
         )}
@@ -154,20 +161,20 @@ const OnboardingPage = () => {
           type="button"
           onClick={handleContinue}
           disabled={!isCurrentStepValid || loading}
-          aria-label={step === 3 ? "Finish onboarding" : "Continue"}
+          aria-label={step === 3 ? t("onboarding.getStarted") : t("onboarding.continue")}
           className="h-12 w-full rounded-full bg-[var(--color-accent)] text-base font-medium text-[var(--color-accent-foreground)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Saving..." : step === 3 ? "Get started" : "Continue"}
+          {loading ? t("common.saving") : step === 3 ? t("onboarding.getStarted") : t("onboarding.continue")}
         </button>
 
         {step > 1 && (
           <button
             type="button"
             onClick={handleBack}
-            aria-label="Go back"
+            aria-label={t("common.goBack")}
             className="h-12 w-full rounded-full border border-[var(--color-border)] bg-transparent text-base font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
           >
-            Back
+            {t("common.back")}
           </button>
         )}
       </div>

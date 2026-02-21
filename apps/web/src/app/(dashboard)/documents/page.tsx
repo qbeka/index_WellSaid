@@ -1,5 +1,6 @@
 import { FolderOpen, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { t } from "@/i18n";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -18,6 +19,18 @@ const DocumentsPage = async () => {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let lang = "en";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", user.id)
+      .single();
+    if (profile?.preferred_language) {
+      lang = profile.preferred_language;
+    }
+  }
+
   let documents: { id: string; title: string; summary: string; created_at: string }[] = [];
 
   if (user) {
@@ -33,14 +46,14 @@ const DocumentsPage = async () => {
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-[var(--color-muted)]">
-        Summaries from scanned documents, updated in real time.
+        {t(lang, "documents.subtitle")}
       </p>
 
       {documents.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
-          title="No documents yet"
-          description="Scan a document from the menu to create summaries from photos of forms, prescriptions, or notes."
+          title={t(lang, "documents.empty")}
+          description={t(lang, "documents.emptyDesc")}
         />
       ) : (
         <div className="flex flex-col gap-2">

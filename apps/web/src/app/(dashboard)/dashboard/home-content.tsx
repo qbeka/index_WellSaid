@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
+import { useTranslation } from "@/i18n";
 import {
   ListChecks,
   Calendar,
@@ -32,13 +33,6 @@ type HomeContentProps = {
   preferredLanguage: string;
 };
 
-const QUICK_PROMPTS = [
-  "Summarize my overall health.",
-  "What action items do I have?",
-  "What are my upcoming appointments?",
-  "Summarize my recent documents.",
-] as const;
-
 const getMessageText = (message: {
   parts: Array<{ type: string; text?: string }>;
 }) =>
@@ -61,11 +55,19 @@ export const HomeContent = ({
   upcomingAppointments,
   preferredLanguage,
 }: HomeContentProps) => {
+  const { t } = useTranslation();
   const [recordOpen, setRecordOpen] = useState(false);
   const [promptIndex, setPromptIndex] = useState(0);
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const quickPrompts = [
+    t("home.prompt1"),
+    t("home.prompt2"),
+    t("home.prompt3"),
+    t("home.prompt4"),
+  ];
 
   const { transcript, isListening, start, stop } = useTranscription({
     language: preferredLanguage,
@@ -74,12 +76,12 @@ export const HomeContent = ({
   const isLoading = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
 
-  const greeting = firstName ? `Welcome back, ${firstName}!` : "Welcome back!";
+  const greeting = firstName ? t("home.welcomeBack", { name: firstName }) : t("home.welcomeBackGeneric");
   const hasSummary = actionItems.length > 0 || upcomingAppointments > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setPromptIndex((prev) => (prev + 1) % QUICK_PROMPTS.length);
+      setPromptIndex((prev) => (prev + 1) % quickPrompts.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -142,7 +144,7 @@ export const HomeContent = ({
                   {greeting}
                 </h1>
                 <p className="max-w-sm text-center text-[15px] leading-relaxed text-[var(--color-muted)]">
-                  Here&apos;s a summary of your health and action items
+                  {t("home.summary")}
                 </p>
               </div>
 
@@ -159,10 +161,10 @@ export const HomeContent = ({
                         aria-hidden="true"
                       />
                       <span className="text-[15px] text-[var(--color-foreground)]">
-                        {upcomingAppointments} upcoming{" "}
+                        {upcomingAppointments} {t("common.upcoming")}{" "}
                         {upcomingAppointments === 1
-                          ? "appointment"
-                          : "appointments"}
+                          ? t("home.appointment")
+                          : t("home.appointments")}
                       </span>
                     </Link>
                   )}
@@ -172,13 +174,13 @@ export const HomeContent = ({
                       <div className="flex items-center justify-between px-1">
                         <h2 className="flex items-center gap-2 text-[14px] font-semibold text-[var(--color-foreground)]">
                           <ListChecks size={16} className="text-[var(--color-accent)]" aria-hidden="true" />
-                          Action Items
+                          {t("home.actionItems")}
                         </h2>
                         <Link
                           href="/action-items"
                           className="text-[13px] font-medium text-[var(--color-accent)] transition-colors hover:underline"
                         >
-                          View all
+                          {t("common.viewAll")}
                         </Link>
                       </div>
                       <div className="flex flex-col gap-1.5">
@@ -208,8 +210,7 @@ export const HomeContent = ({
                 </div>
               ) : (
                 <p className="max-w-sm self-center text-center text-[15px] text-[var(--color-muted)]">
-                  No upcoming appointments or action items. Check back after
-                  your next visit.
+                  {t("home.noItems")}
                 </p>
               )}
             </motion.div>
@@ -242,7 +243,7 @@ export const HomeContent = ({
                     }`}
                   >
                     <p className="mb-1 text-xs font-medium opacity-70">
-                      {isUser ? "You" : "WellSaid"}
+                      {isUser ? t("home.you") : "WellSaid"}
                     </p>
                     <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
                       {text}
@@ -259,7 +260,7 @@ export const HomeContent = ({
                 >
                   <div className="flex items-center gap-2 text-[15px] text-[var(--color-muted)]">
                     <Loader2 size={16} className="animate-spin" />
-                    Thinking...
+                    {t("home.thinking")}
                   </div>
                 </motion.div>
               )}
@@ -285,7 +286,7 @@ export const HomeContent = ({
                 className="text-[var(--color-accent)]"
                 aria-hidden="true"
               />
-              Record note
+              {t("home.recordNote")}
             </button>
             <Link
               href="/appointments/schedule"
@@ -298,16 +299,16 @@ export const HomeContent = ({
                 className="text-[var(--color-accent)]"
                 aria-hidden="true"
               />
-              Schedule visit
+              {t("home.scheduleVisit")}
             </Link>
           </div>
 
           <button
             type="button"
-            onClick={() => handlePromptClick(QUICK_PROMPTS[promptIndex])}
+            onClick={() => handlePromptClick(quickPrompts[promptIndex])}
             disabled={isLoading}
             tabIndex={0}
-            aria-label={QUICK_PROMPTS[promptIndex]}
+            aria-label={quickPrompts[promptIndex]}
             className="mb-3 flex h-11 w-full items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background-muted)] px-4 text-left transition-all hover:bg-[var(--color-accent-soft)] disabled:opacity-50"
           >
             <AnimatePresence mode="wait">
@@ -319,7 +320,7 @@ export const HomeContent = ({
                 transition={{ duration: 0.15 }}
                 className="flex-1 truncate text-[14px] text-[var(--color-foreground)]"
               >
-                {QUICK_PROMPTS[promptIndex]}
+                {quickPrompts[promptIndex]}
               </motion.span>
             </AnimatePresence>
             <ArrowRight
@@ -333,7 +334,7 @@ export const HomeContent = ({
             <button
               type="button"
               onClick={handleMicToggle}
-              aria-label={isListening ? "Stop listening" : "Speak"}
+              aria-label={isListening ? t("home.stopListening") : t("home.speak")}
               tabIndex={0}
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all active:scale-95 ${
                 isListening
@@ -351,7 +352,7 @@ export const HomeContent = ({
                 if (!isListening) setInputText(e.target.value);
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Ask any question..."
+              placeholder={t("home.askQuestion")}
               readOnly={isListening}
               disabled={isLoading}
               aria-label="Type your question here"
