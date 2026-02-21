@@ -56,6 +56,15 @@ export async function proxy(request: NextRequest) {
     }
   } catch (err) {
     console.error("[proxy] Auth error:", err);
+    const isAuthRoute =
+      request.nextUrl.pathname === "/login" ||
+      request.nextUrl.pathname.startsWith("/auth/callback") ||
+      request.nextUrl.pathname === "/onboarding";
+    if (!isAuthRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next({ request });
   }
 

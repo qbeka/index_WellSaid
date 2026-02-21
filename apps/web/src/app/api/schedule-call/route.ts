@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schedulingResultSchema = z.object({
   appointmentDate: z
@@ -142,9 +143,7 @@ Rules:
     };
   }
 
-  console.log("[vapi] Creating call with payload:", JSON.stringify(callPayload, null, 2));
   const callResponse = await vapiRequest("/call", "POST", callPayload);
-  console.log("[vapi] Call created:", JSON.stringify(callResponse, null, 2));
 
   const callId: string = callResponse.id;
 
@@ -280,6 +279,9 @@ export const POST = async (req: Request) => {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const rl = await rateLimit(user.id, "schedule-call", 5, 60);
+    if (!rl.success) return rl.response;
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("first_name, last_name, hospital_phone, phone_extension, preferred_language")
@@ -408,7 +410,7 @@ Generate a realistic appointment result. The date should be in the near future (
   } catch (e) {
     console.error("[schedule-call] Error:", e);
     return Response.json(
-      { error: e instanceof Error ? e.message : "Scheduling failed" },
+      { error: "Scheduling failed" },
       { status: 500 }
     );
   }

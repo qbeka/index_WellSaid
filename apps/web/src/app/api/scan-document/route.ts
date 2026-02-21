@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const documentSchema = z.object({
   title: z
@@ -49,8 +50,19 @@ export const POST = async (req: Request) => {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const rl = await rateLimit(user.id, "scan-document", 10, 60);
+    if (!rl.success) return rl.response;
+
     if (!image || typeof image !== "string") {
       return Response.json({ error: "No image provided" }, { status: 400 });
+    }
+
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+    const base64Prefix = image.indexOf(",");
+    const base64Length = base64Prefix > -1 ? image.length - base64Prefix - 1 : image.length;
+    const estimatedBytes = Math.ceil(base64Length * 0.75);
+    if (estimatedBytes > MAX_IMAGE_SIZE) {
+      return Response.json({ error: "Image too large (max 10 MB)" }, { status: 400 });
     }
 
     const { object } = await generateObject({
@@ -120,14 +132,15 @@ export const POST = async (req: Request) => {
     });
 
     if (error) {
-      return Response.json({ error: error.message }, { status: 500 });
+      console.error("[scan-document] DB error:", error.message);
+      return Response.json({ error: "Failed to save document" }, { status: 500 });
     }
 
     return Response.json({ success: true, document: object });
   } catch (e) {
     console.error("[scan-document] Error:", e);
     return Response.json(
-      { error: e instanceof Error ? e.message : "Failed to process document" },
+      { error: "Failed to process document" },
       { status: 500 }
     );
   }

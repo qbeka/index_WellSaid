@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const translationSchema = z.object({
   translatedText: z.string().describe("The translated text"),
@@ -22,6 +23,9 @@ export const POST = async (req: Request) => {
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const rl = await rateLimit(user.id, "translate", 30, 60);
+    if (!rl.success) return rl.response;
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       return Response.json({ error: "No text provided" }, { status: 400 });
@@ -44,7 +48,7 @@ ${text.trim()}`,
   } catch (e) {
     console.error("[translate] Error:", e);
     return Response.json(
-      { error: e instanceof Error ? e.message : "Translation failed" },
+      { error: "Translation failed" },
       { status: 500 }
     );
   }

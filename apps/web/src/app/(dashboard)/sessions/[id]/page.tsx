@@ -9,10 +9,17 @@ const SessionDetailPage = async ({ params }: Props) => {
   const { id } = await params;
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) notFound();
+
   const { data: session } = await supabase
     .from("sessions")
     .select("*")
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
 
   if (!session) notFound();

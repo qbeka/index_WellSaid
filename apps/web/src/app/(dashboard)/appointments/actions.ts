@@ -63,7 +63,10 @@ export const createAppointment = async (data: {
     notes: data.notes.trim() || null,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[appointments] Insert error:", error.message);
+    return { error: "Failed to create appointment" };
+  }
 
   revalidatePath("/appointments");
   revalidatePath("/action-items");
@@ -87,7 +90,10 @@ export const updateAppointmentStatus = async (
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[appointments] Status update error:", error.message);
+    return { error: "Failed to update appointment" };
+  }
 
   revalidatePath("/appointments");
   return { success: true };
@@ -125,7 +131,10 @@ export const updateAppointment = async (
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[appointments] Update error:", error.message);
+    return { error: "Failed to update appointment" };
+  }
 
   revalidatePath("/appointments");
   revalidatePath(`/appointments/${id}`);
@@ -146,7 +155,10 @@ export const deleteAppointment = async (id: string) => {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[appointments] Delete error:", error.message);
+    return { error: "Failed to delete appointment" };
+  }
 
   revalidatePath("/appointments");
   return { success: true };

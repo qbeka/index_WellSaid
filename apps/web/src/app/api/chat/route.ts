@@ -1,6 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
 
@@ -46,9 +47,12 @@ export const POST = async (req: Request) => {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    const rl = await rateLimit(user.id, "chat", 30, 60);
+    if (!rl.success) return rl.response;
+
     const [profileRes, notesRes, appointmentsRes, documentsRes, sessionsRes] =
       await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase.from("profiles").select("first_name, last_name, preferred_language").eq("id", user.id).single(),
         supabase
           .from("health_notes")
           .select("title, content, action_items, created_at")
@@ -126,7 +130,7 @@ export const POST = async (req: Request) => {
   } catch (e) {
     console.error("[chat] Error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: "Something went wrong" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

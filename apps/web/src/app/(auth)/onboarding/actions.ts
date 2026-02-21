@@ -33,7 +33,8 @@ export const completeOnboarding = async (data: {
     .eq("id", user.id);
 
   if (error) {
-    return { error: error.message };
+    console.error("[onboarding] Profile update error:", error.message);
+    return { error: "Failed to save profile" };
   }
 
   redirect("/dashboard");

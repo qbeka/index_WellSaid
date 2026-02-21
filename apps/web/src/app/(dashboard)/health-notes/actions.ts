@@ -59,7 +59,10 @@ export const updateHealthNote = async (
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[health-notes] Update error:", error.message);
+    return { error: "Failed to update note" };
+  }
 
   revalidatePath("/health-notes");
   revalidatePath(`/health-notes/${id}`);
@@ -80,7 +83,10 @@ export const deleteHealthNote = async (id: string) => {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("[health-notes] Delete error:", error.message);
+    return { error: "Failed to delete note" };
+  }
 
   revalidatePath("/health-notes");
   revalidatePath("/action-items");

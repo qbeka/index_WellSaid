@@ -3,6 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
+import { rateLimit } from "@/lib/rate-limit";
 
 const sessionSchema = z.object({
   title: z
@@ -39,6 +40,9 @@ export const POST = async (req: Request) => {
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const rl = await rateLimit(user.id, "summarize-visit", 10, 60);
+    if (!rl.success) return rl.response;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length < 10) {
       return Response.json(
@@ -90,14 +94,15 @@ ${transcript.trim()}`,
       .single();
 
     if (error) {
-      return Response.json({ error: error.message }, { status: 500 });
+      console.error("[summarize-visit] DB error:", error.message);
+      return Response.json({ error: "Failed to save session" }, { status: 500 });
     }
 
     return Response.json({ success: true, session: { id: data.id, ...object } });
   } catch (e) {
     console.error("[summarize-visit] Error:", e);
     return Response.json(
-      { error: e instanceof Error ? e.message : "Failed to summarize visit" },
+      { error: "Failed to summarize visit" },
       { status: 500 }
     );
   }

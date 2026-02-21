@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const noteSchema = z.object({
   title: z
@@ -30,6 +31,9 @@ export const POST = async (req: Request) => {
   if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const rl = await rateLimit(user.id, "extract-note", 20, 60);
+  if (!rl.success) return rl.response;
 
   if (!rawText || typeof rawText !== "string" || rawText.trim().length === 0) {
     return Response.json({ error: "No text provided" }, { status: 400 });
@@ -63,7 +67,8 @@ ${rawText.trim()}`,
   });
 
   if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("[extract-note] DB error:", error.message);
+    return Response.json({ error: "Failed to save note" }, { status: 500 });
   }
 
   return Response.json({ success: true, note: object });

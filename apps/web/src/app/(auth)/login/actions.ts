@@ -25,7 +25,8 @@ export const signInWithGoogle = async () => {
   });
 
   if (error) {
-    return { error: error.message };
+    console.error("[login] OAuth error:", error.message);
+    return { error: "Sign in failed. Please try again." };
   }
 
   return { url: data.url };

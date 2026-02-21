@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const POST = async () => {
   try {
@@ -10,6 +11,9 @@ export const POST = async () => {
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const rl = await rateLimit(user.id, "assemblyai-token", 10, 60);
+    if (!rl.success) return rl.response;
 
     const apiKey = process.env.ASSEMBLYAI_API_KEY;
     if (!apiKey) {
