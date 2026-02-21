@@ -41,6 +41,7 @@ const ScheduleAppointmentPage = () => {
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [phoneExtension, setPhoneExtension] = useState("");
   const [statuses, setStatuses] = useState<StatusEntry[]>([]);
   const [result, setResult] = useState<AppointmentResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -79,6 +80,7 @@ const ScheduleAppointmentPage = () => {
           preferredDate: preferredDate || undefined,
           preferredTime: preferredTime || undefined,
           notes: notes.trim() || undefined,
+          phoneExtension: phoneExtension.trim() || undefined,
         }),
       });
 
@@ -185,6 +187,23 @@ const ScheduleAppointmentPage = () => {
               value={doctorName}
               onChange={(e) => setDoctorName(e.target.value)}
               placeholder={t("schedule.doctorPlaceholder")}
+              className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="phoneExt"
+              className="text-[13px] font-medium text-[var(--color-foreground)]"
+            >
+              Phone extension (optional)
+            </label>
+            <input
+              id="phoneExt"
+              type="text"
+              value={phoneExtension}
+              onChange={(e) => setPhoneExtension(e.target.value)}
+              placeholder="e.g. 4302"
               className="h-12 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10"
             />
           </div>

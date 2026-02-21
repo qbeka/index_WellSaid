@@ -14,6 +14,7 @@ const OnboardingPage = () => {
   const [lastName, setLastName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("");
   const [hospitalPhone, setHospitalPhone] = useState("");
+  const [phoneExtension, setPhoneExtension] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ const OnboardingPage = () => {
         lastName: lastName.trim(),
         preferredLanguage,
         hospitalPhone: hospitalPhone.trim(),
+        phoneExtension: phoneExtension.trim(),
       });
 
       if (result?.error) {
@@ -140,15 +142,25 @@ const OnboardingPage = () => {
         )}
 
         {step === 3 && (
-          <input
-            type="tel"
-            placeholder="(555) 555-5555"
-            value={hospitalPhone}
-            onChange={(e) => setHospitalPhone(e.target.value)}
-            autoFocus
-            aria-label={t("profile.hospitalPhone")}
-            className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
-          />
+          <>
+            <input
+              type="tel"
+              placeholder="(555) 555-5555"
+              value={hospitalPhone}
+              onChange={(e) => setHospitalPhone(e.target.value)}
+              autoFocus
+              aria-label={t("profile.hospitalPhone")}
+              className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
+            />
+            <input
+              type="text"
+              placeholder="Ext. (optional)"
+              value={phoneExtension}
+              onChange={(e) => setPhoneExtension(e.target.value)}
+              aria-label="Phone extension"
+              className="h-12 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-base text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
+            />
+          </>
         )}
 
         {error && (

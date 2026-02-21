@@ -54,6 +54,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [hospitalPhone, setHospitalPhone] = useState("");
+  const [phoneExtension, setPhoneExtension] = useState("");
   const [selectedLang, setSelectedLang] = useState(lang);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -76,12 +77,13 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("hospital_phone, preferred_language")
+          .select("hospital_phone, phone_extension, preferred_language")
           .eq("id", user.id)
           .single();
 
         if (profile) {
           setHospitalPhone(profile.hospital_phone || "");
+          setPhoneExtension(profile.phone_extension || "");
           setSelectedLang(profile.preferred_language || "en");
         }
       }
@@ -127,6 +129,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         .from("profiles")
         .update({
           hospital_phone: hospitalPhone.trim() || null,
+          phone_extension: phoneExtension.trim() || null,
           preferred_language: selectedLang,
         })
         .eq("id", user.id);
@@ -164,14 +167,14 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         className="fixed left-0 top-0 z-50 flex h-full w-80 flex-col bg-[var(--color-surface)] shadow-xl"
       >
         <div className="border-b border-[var(--color-border)] px-5 py-4">
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(!settingsOpen)}
-            aria-label={t("profile.settings")}
-            tabIndex={0}
-            className="flex w-full items-center justify-between"
-          >
-            <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              aria-label={t("profile.settings")}
+              tabIndex={0}
+              className="flex min-w-0 flex-1 items-center gap-3"
+            >
               {userInfo.avatarUrl ? (
                 <Image
                   src={userInfo.avatarUrl}
@@ -195,12 +198,20 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
               <span className="truncate text-[15px] font-semibold text-[var(--color-foreground)]">
                 {userInfo.name || t("common.loading")}
               </span>
-            </div>
-            <ChevronDown
-              size={18}
-              className={`shrink-0 text-[var(--color-muted)] transition-transform ${settingsOpen ? "rotate-180" : ""}`}
-            />
-          </button>
+              <ChevronDown
+                size={16}
+                className={`shrink-0 text-[var(--color-muted)] transition-transform ${settingsOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            <button
+              onClick={onClose}
+              aria-label={t("common.close")}
+              tabIndex={0}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
           <AnimatePresence>
             {settingsOpen && (
@@ -217,14 +228,24 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                       <Phone size={12} />
                       {t("profile.hospitalPhone")}
                     </label>
-                    <input
-                      type="tel"
-                      value={hospitalPhone}
-                      onChange={(e) => setHospitalPhone(e.target.value)}
-                      placeholder="(555) 555-5555"
-                      aria-label={t("profile.hospitalPhone")}
-                      className="h-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-[13px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        value={hospitalPhone}
+                        onChange={(e) => setHospitalPhone(e.target.value)}
+                        placeholder="(555) 555-5555"
+                        aria-label={t("profile.hospitalPhone")}
+                        className="h-10 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-[13px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
+                      />
+                      <input
+                        type="text"
+                        value={phoneExtension}
+                        onChange={(e) => setPhoneExtension(e.target.value)}
+                        placeholder="Ext."
+                        aria-label="Phone extension"
+                        className="h-10 w-20 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-[13px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
@@ -269,17 +290,6 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        <div className="flex items-center justify-end border-b border-[var(--color-border)] px-5 py-2">
-          <button
-            onClick={onClose}
-            aria-label={t("common.close")}
-            tabIndex={0}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-background-muted)]"
-          >
-            <X size={22} />
-          </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">

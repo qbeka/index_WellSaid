@@ -8,6 +8,7 @@ export const completeOnboarding = async (data: {
   lastName: string;
   preferredLanguage: string;
   hospitalPhone: string;
+  phoneExtension: string;
 }) => {
   const supabase = await createClient();
 
@@ -26,6 +27,7 @@ export const completeOnboarding = async (data: {
       last_name: data.lastName,
       preferred_language: data.preferredLanguage,
       hospital_phone: data.hospitalPhone || null,
+      phone_extension: data.phoneExtension || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);

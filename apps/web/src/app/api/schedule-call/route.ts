@@ -56,13 +56,14 @@ async function runVapiCall(
   notes: string,
   patientName: string,
   hospitalPhone: string,
+  extension: string,
   send: SendFn
 ): Promise<string | undefined> {
   send(
     "status",
     JSON.stringify({
       step: "dialing",
-      message: `Calling ${hospitalPhone}...`,
+      message: `Calling ${hospitalPhone}${extension ? ` ext. ${extension}` : ""}...`,
     })
   );
 
@@ -70,7 +71,10 @@ async function runVapiCall(
 
   const callPayload: Record<string, unknown> = {
     phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID,
-    customer: { number: hospitalPhone },
+    customer: {
+      number: hospitalPhone,
+      ...(extension ? { extension } : {}),
+    },
   };
 
   if (assistantId) {
@@ -84,6 +88,7 @@ async function runVapiCall(
         preferredDate: preferredDate || "next available",
         preferredTime: preferredTime || "any time",
         notes: notes || "none",
+        extension: extension || "none",
       },
     };
   } else {
@@ -264,7 +269,7 @@ async function runSimulation(
 
 export const POST = async (req: Request) => {
   try {
-    const { reason, doctorName, preferredDate, preferredTime, notes } = await req.json();
+    const { reason, doctorName, preferredDate, preferredTime, notes, phoneExtension } = await req.json();
     const supabase = await createClient();
 
     const {
@@ -277,11 +282,12 @@ export const POST = async (req: Request) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("first_name, last_name, hospital_phone, preferred_language")
+      .select("first_name, last_name, hospital_phone, phone_extension, preferred_language")
       .eq("id", user.id)
       .single();
 
     const hospitalPhone = profile?.hospital_phone;
+    const extension = phoneExtension || profile?.phone_extension || "";
     const patientName = [profile?.first_name, profile?.last_name]
       .filter(Boolean)
       .join(" ");
@@ -312,6 +318,7 @@ export const POST = async (req: Request) => {
               notes,
               patientName,
               hospitalPhone,
+              extension,
               send
             );
           } else {
