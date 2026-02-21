@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { RecordNoteSheet } from "./record-note-sheet";
 import Link from "next/link";
+import { useTranscription } from "@/hooks/use-transcription";
 
 type ActionItem = {
   text: string;
@@ -28,6 +29,7 @@ type HomeContentProps = {
   firstName: string;
   actionItems: ActionItem[];
   upcomingAppointments: number;
+  preferredLanguage: string;
 };
 
 const QUICK_PROMPTS = [
@@ -57,16 +59,17 @@ export const HomeContent = ({
   firstName,
   actionItems,
   upcomingAppointments,
+  preferredLanguage,
 }: HomeContentProps) => {
   const [recordOpen, setRecordOpen] = useState(false);
   const [promptIndex, setPromptIndex] = useState(0);
-  const [voiceActive, setVoiceActive] = useState(false);
-  const [voiceText, setVoiceText] = useState("");
   const [inputText, setInputText] = useState("");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { transcript, isListening, start, stop } = useTranscription({
+    language: preferredLanguage,
+  });
   const { messages, sendMessage, status } = useChat();
   const isLoading = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
@@ -83,57 +86,23 @@ export const HomeContent = ({
 
   useEffect(() => {
     return () => {
-      recognitionRef.current?.stop();
+      stop();
     };
-  }, []);
+  }, [stop]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleMicToggle = () => {
-    if (voiceActive) {
-      recognitionRef.current?.stop();
-      setVoiceActive(false);
-      if (voiceText.trim()) {
-        setInputText(voiceText.trim());
-        setVoiceText("");
+  const handleMicToggle = async () => {
+    if (isListening) {
+      stop();
+      if (transcript.trim()) {
+        setInputText(transcript.trim());
       }
       return;
     }
-
-    try {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return;
-
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-
-      let finalTranscript = "";
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const r = event.results[i];
-          if (r.isFinal) {
-            finalTranscript += r[0].transcript + " ";
-          } else {
-            interim += r[0].transcript;
-          }
-        }
-        setVoiceText(finalTranscript + interim);
-      };
-
-      recognition.onerror = () => setVoiceActive(false);
-      recognition.start();
-      recognitionRef.current = recognition;
-      setVoiceActive(true);
-      setVoiceText("");
-    } catch {
-      // speech recognition not available
-    }
+    await start();
   };
 
   const handleSend = () => {
@@ -364,26 +333,26 @@ export const HomeContent = ({
             <button
               type="button"
               onClick={handleMicToggle}
-              aria-label={voiceActive ? "Stop listening" : "Speak"}
+              aria-label={isListening ? "Stop listening" : "Speak"}
               tabIndex={0}
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all active:scale-95 ${
-                voiceActive
+                isListening
                   ? "bg-[var(--color-danger)] text-white shadow-md"
                   : "bg-[var(--color-accent)] text-white"
               }`}
             >
-              {voiceActive ? <Square size={18} /> : <Mic size={20} />}
+              {isListening ? <Square size={18} /> : <Mic size={20} />}
             </button>
 
             <input
               ref={inputRef}
-              value={voiceActive ? voiceText : inputText}
+              value={isListening ? transcript : inputText}
               onChange={(e) => {
-                if (!voiceActive) setInputText(e.target.value);
+                if (!isListening) setInputText(e.target.value);
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask any question..."
-              readOnly={voiceActive}
+              readOnly={isListening}
               disabled={isLoading}
               aria-label="Type your question here"
               className="h-12 flex-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-[15px] text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/10 disabled:opacity-50"
@@ -393,7 +362,7 @@ export const HomeContent = ({
               type="button"
               onClick={handleSend}
               disabled={
-                !(voiceActive ? voiceText : inputText).trim() || isLoading
+                !(isListening ? transcript : inputText).trim() || isLoading
               }
               aria-label="Send message"
               tabIndex={0}
@@ -411,7 +380,10 @@ export const HomeContent = ({
 
       <AnimatePresence>
         {recordOpen && (
-          <RecordNoteSheet onClose={() => setRecordOpen(false)} />
+          <RecordNoteSheet
+            onClose={() => setRecordOpen(false)}
+            language={preferredLanguage}
+          />
         )}
       </AnimatePresence>
     </>

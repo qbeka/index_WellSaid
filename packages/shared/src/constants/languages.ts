@@ -16,3 +16,20 @@ export const SUPPORTED_LANGUAGES = [
 ] as const;
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]["code"];
+
+export const LANG_TO_BCP47: Record<string, string> = {
+  en: "en-US",
+  es: "es-ES",
+  zh: "zh-CN",
+  yue: "zh-HK",
+  ko: "ko-KR",
+  ja: "ja-JP",
+  vi: "vi-VN",
+  tl: "fil-PH",
+  ar: "ar-SA",
+  pt: "pt-BR",
+  sq: "sq-AL",
+  fr: "fr-FR",
+  hi: "hi-IN",
+  ru: "ru-RU",
+};

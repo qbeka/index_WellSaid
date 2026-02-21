@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
 
 const sessionSchema = z.object({
   title: z
@@ -46,6 +47,21 @@ export const POST = async (req: Request) => {
       );
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", user.id)
+      .single();
+
+    const langCode = profile?.preferred_language ?? "en";
+    const langLabel =
+      SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.label || "English";
+
+    const languageInstruction =
+      langCode !== "en"
+        ? `\n\nIMPORTANT: The patient's preferred language is ${langLabel}. Write ALL output (title, summary, key topics, action items) in ${langLabel}.`
+        : "";
+
     const { object } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: sessionSchema,
@@ -54,7 +70,7 @@ export const POST = async (req: Request) => {
 1. A short descriptive title
 2. A clear, patient-friendly summary (avoid jargon, explain medical terms)
 3. Key topics discussed
-4. Action items for the patient
+4. Action items for the patient${languageInstruction}
 
 Transcript:
 ${transcript.trim()}`,

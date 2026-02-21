@@ -12,6 +12,28 @@ const documentSchema = z.object({
     .describe(
       "A concise summary of the document's contents including key information like medications, lab results, diagnoses, or instructions. 2-4 sentences."
     ),
+  documentType: z
+    .enum([
+      "prescription",
+      "lab_result",
+      "discharge_summary",
+      "referral",
+      "imaging_report",
+      "insurance",
+      "receipt",
+      "other",
+    ])
+    .describe("The type/category of this medical document"),
+  keyFindings: z
+    .array(z.string())
+    .describe(
+      "Key medical findings, values, or observations extracted from the document (e.g. 'Blood pressure: 120/80', 'Cholesterol: 200 mg/dL')"
+    ),
+  medications: z
+    .array(z.string())
+    .describe(
+      "Names of any medications mentioned in the document, including dosages if visible"
+    ),
 });
 
 export const POST = async (req: Request) => {
@@ -40,7 +62,7 @@ export const POST = async (req: Request) => {
           content: [
             {
               type: "text",
-              text: "You are a medical document analyzer. Analyze this document image and extract a title and summary. Focus on medical information: medications, dosages, lab results, diagnoses, instructions, dates. Do NOT invent information not visible in the image.",
+              text: "You are a medical document analyzer. Analyze this document image and extract a title, summary, document type, key findings, and any medications mentioned. Focus on medical information: medications, dosages, lab results, diagnoses, instructions, dates. Do NOT invent information not visible in the image. If a field has no applicable data, return an empty array.",
             },
             {
               type: "image",
@@ -52,6 +74,7 @@ export const POST = async (req: Request) => {
     });
 
     let imageUrl = "";
+    let storagePath = "";
 
     try {
       const base64Match = image.match(/^data:image\/\w+;base64,(.+)$/);
@@ -69,10 +92,12 @@ export const POST = async (req: Request) => {
           });
 
         if (!uploadError) {
-          const { data: urlData } = supabase.storage
+          storagePath = fileName;
+          const { data: signedData } = await supabase.storage
             .from("documents")
-            .getPublicUrl(fileName);
-          imageUrl = urlData.publicUrl;
+            .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+
+          imageUrl = signedData?.signedUrl || "";
         } else {
           console.error("[scan-document] Upload error:", uploadError.message);
           imageUrl = "upload-failed";
@@ -88,6 +113,10 @@ export const POST = async (req: Request) => {
       title: object.title,
       summary: object.summary,
       image_url: imageUrl || "no-image",
+      storage_path: storagePath || null,
+      document_type: object.documentType,
+      key_findings: object.keyFindings,
+      medications: object.medications,
     });
 
     if (error) {

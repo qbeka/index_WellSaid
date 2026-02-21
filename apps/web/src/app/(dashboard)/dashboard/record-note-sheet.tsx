@@ -1,78 +1,41 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import { useTranscription } from "@/hooks/use-transcription";
+import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
 
 type RecordNoteSheetProps = {
   onClose: () => void;
+  language?: string;
 };
 
-export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
-  const [recording, setRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
+export const RecordNoteSheet = ({
+  onClose,
+  language = "en",
+}: RecordNoteSheetProps) => {
   const [saving, setSaving] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const { transcript, isListening, start, stop } = useTranscription({
+    language,
+  });
   const router = useRouter();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      stop();
     };
-  }, []);
+  }, [stop]);
 
   const handleStartRecording = async () => {
-    try {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Speech recognition is not supported in this browser.");
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-
-      let finalTranscript = "";
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          if (result.isFinal) {
-            finalTranscript += result[0].transcript + " ";
-          } else {
-            interim += result[0].transcript;
-          }
-        }
-        setTranscript(finalTranscript + interim);
-      };
-
-      recognition.onerror = () => {
-        setRecording(false);
-      };
-
-      recognition.start();
-      recognitionRef.current = recognition;
-      setRecording(true);
-    } catch {
-      alert("Could not access microphone.");
-    }
+    await start();
   };
 
   const handleStopRecording = async () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setRecording(false);
+    stop();
 
     if (!transcript.trim()) return;
 
@@ -83,7 +46,9 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rawText: transcript.trim(),
-          language: "English",
+          language:
+            SUPPORTED_LANGUAGES.find((l) => l.code === language)?.label ||
+            "English",
         }),
       });
 
@@ -104,7 +69,7 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-40 bg-black/30"
-        onClick={!recording && !saving ? onClose : undefined}
+        onClick={!isListening && !saving ? onClose : undefined}
         aria-hidden="true"
       />
 
@@ -135,7 +100,7 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
               </p>
             ) : (
               <p className="text-center text-[15px] text-[var(--color-muted)]">
-                {recording
+                {isListening
                   ? "Listening..."
                   : "Your transcript will appear here"}
               </p>
@@ -147,7 +112,7 @@ export const RecordNoteSheet = ({ onClose }: RecordNoteSheetProps) => {
               <Loader2 size={20} className="animate-spin" />
               Processing...
             </div>
-          ) : recording ? (
+          ) : isListening ? (
             <button
               type="button"
               onClick={handleStopRecording}

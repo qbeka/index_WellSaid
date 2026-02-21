@@ -17,12 +17,14 @@ const DashboardPage = async () => {
   let actionItems: ActionItem[] = [];
   let upcomingCount = 0;
 
+  let preferredLanguage = "en";
+
   if (user) {
     const [profileRes, notesRes, sessionsRes, appointmentsRes] =
       await Promise.all([
         supabase
           .from("profiles")
-          .select("first_name")
+          .select("first_name, preferred_language")
           .eq("id", user.id)
           .single(),
         supabase
@@ -43,6 +45,7 @@ const DashboardPage = async () => {
       ]);
 
     firstName = profileRes.data?.first_name ?? "";
+    preferredLanguage = profileRes.data?.preferred_language ?? "en";
 
     const notes = notesRes.data ?? [];
     const sessions = sessionsRes.data ?? [];
@@ -79,6 +82,7 @@ const DashboardPage = async () => {
       firstName={firstName}
       actionItems={actionItems}
       upcomingAppointments={upcomingCount}
+      preferredLanguage={preferredLanguage}
     />
   );
 };

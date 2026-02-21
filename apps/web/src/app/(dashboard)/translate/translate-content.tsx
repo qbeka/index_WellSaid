@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Mic,
   Square,
@@ -13,26 +13,10 @@ import {
 } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@wellsaid/shared";
 import { motion, AnimatePresence } from "motion/react";
+import { useTranscription } from "@/hooks/use-transcription";
 
 type TranslateContentProps = {
   defaultLanguage: string;
-};
-
-const LANG_TO_BCP47: Record<string, string> = {
-  en: "en-US",
-  es: "es-ES",
-  zh: "zh-CN",
-  yue: "zh-HK",
-  ko: "ko-KR",
-  ja: "ja-JP",
-  vi: "vi-VN",
-  tl: "fil-PH",
-  ar: "ar-SA",
-  pt: "pt-BR",
-  sq: "sq-AL",
-  fr: "fr-FR",
-  hi: "hi-IN",
-  ru: "ru-RU",
 };
 
 export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => {
@@ -43,63 +27,35 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const [targetLang, setTargetLang] = useState(defaultLanguage);
   const [targetDropdownOpen, setTargetDropdownOpen] = useState(false);
-  const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [speaking, setSpeaking] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const sourceDropdownRef = useRef<HTMLDivElement>(null);
+
+  const { transcript, isListening, start, stop } = useTranscription({
+    language: sourceLang,
+  });
+
+  useEffect(() => {
+    if (transcript) {
+      setSourceText(transcript);
+    }
+  }, [transcript]);
 
   const sourceLabel =
     SUPPORTED_LANGUAGES.find((l) => l.code === sourceLang)?.label ?? "English";
   const targetLabel =
     SUPPORTED_LANGUAGES.find((l) => l.code === targetLang)?.label ?? "English";
 
-  const handleStartRecording = () => {
-    try {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Speech recognition is not supported in this browser.");
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      (recognition as unknown as Record<string, number>).maxAlternatives = 3;
-      recognition.lang = LANG_TO_BCP47[sourceLang] || "en-US";
-
-      let finalTranscript = "";
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          if (result.isFinal) {
-            finalTranscript += result[0].transcript + " ";
-          } else {
-            interim += result[0].transcript;
-          }
-        }
-        setSourceText(finalTranscript + interim);
-      };
-
-      recognition.onerror = () => setRecording(false);
-      recognition.start();
-      recognitionRef.current = recognition;
-      setRecording(true);
-      setTranslatedText("");
-      setDetectedLang("");
-    } catch {
-      alert("Could not access microphone.");
-    }
+  const handleStartRecording = async () => {
+    setTranslatedText("");
+    setDetectedLang("");
+    await start();
   };
 
   const handleStopRecording = () => {
-    recognitionRef.current?.stop();
-    setRecording(false);
+    stop();
     if (sourceText.trim()) handleTranslate(sourceText.trim());
   };
 
@@ -223,12 +179,12 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
             onChange={(e) => setSourceText(e.target.value)}
             placeholder="Tap the microphone below to speak, or type here..."
             rows={4}
-            disabled={recording}
+            disabled={isListening}
             aria-label="Source text"
             className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-[var(--color-foreground)] outline-none placeholder:text-[var(--color-muted)] disabled:opacity-60"
           />
 
-          {sourceText && !recording && (
+          {sourceText && !isListening && (
             <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
@@ -357,7 +313,7 @@ export const TranslateContent = ({ defaultLanguage }: TranslateContentProps) => 
 
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-[var(--color-surface)] shadow-[0_-1px_3px_0_rgba(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-2xl items-center justify-center gap-4 px-4 py-4">
-          {recording ? (
+          {isListening ? (
             <button
               type="button"
               onClick={handleStopRecording}
