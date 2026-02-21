@@ -23,6 +23,31 @@ const schedulingResultSchema = z.object({
 
 type SendFn = (event: string, data: string) => void;
 
+const VAPI_BASE = "https://api.vapi.ai";
+
+async function vapiRequest(
+  path: string,
+  method: "GET" | "POST",
+  body?: Record<string, unknown>
+) {
+  const res = await fetch(`${VAPI_BASE}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${process.env.VAPI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    console.error("[vapi] API error:", res.status, JSON.stringify(data));
+    throw new Error(
+      `Vapi API ${res.status}: ${data?.message || JSON.stringify(data)}`
+    );
+  }
+  return data;
+}
+
 async function runVapiCall(
   reason: string,
   preferredDate: string,
@@ -32,9 +57,6 @@ async function runVapiCall(
   hospitalPhone: string,
   send: SendFn
 ): Promise<string | undefined> {
-  const { VapiClient } = await import("@vapi-ai/server-sdk");
-  const vapi = new VapiClient({ token: process.env.VAPI_API_KEY! });
-
   send(
     "status",
     JSON.stringify({
@@ -43,40 +65,78 @@ async function runVapiCall(
     })
   );
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const callResponse: any = await (vapi.calls as any).create({
-    phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID!,
+  const assistantId = process.env.VAPI_ASSISTANT_ID;
+
+  const callPayload: Record<string, unknown> = {
+    phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID,
     customer: { number: hospitalPhone },
-    assistant: {
-      firstMessage: `Hi, I'm calling on behalf of ${patientName || "a patient"} to schedule an appointment.`,
+  };
+
+  if (assistantId) {
+    callPayload.assistantId = assistantId;
+    callPayload.assistantOverrides = {
+      firstMessageMode: "assistant-speaks-first",
+      variableValues: {
+        patientName: patientName || "a patient",
+        reason: reason || "general checkup",
+        preferredDate: preferredDate || "next available",
+        preferredTime: preferredTime || "any time",
+        notes: notes || "none",
+      },
+    };
+  } else {
+    callPayload.assistant = {
+      name: "Riley",
+      firstMessageMode: "assistant-speaks-first",
+      firstMessage: `Hi there, my name is Riley and I'm calling from WellSaid Health on behalf of ${patientName || "a patient"}. I'd like to schedule an appointment for ${reason || "general checkup"}. Do you have a moment to help me with that?`,
+      transcriber: {
+        provider: "deepgram",
+        model: "nova-2",
+        language: "en",
+      },
       model: {
         provider: "openai",
         model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: `You are a medical scheduling assistant calling a hospital to book an appointment.
+            content: `You are Riley, a polite and professional medical scheduling assistant working for WellSaid Health. You are making an outbound phone call to a hospital or clinic to schedule an appointment on behalf of a patient.
+
 Patient: ${patientName}
-Reason: ${reason || "general checkup"}
+Reason for visit: ${reason || "general checkup"}
 Preferred date: ${preferredDate || "next available"}
 Preferred time: ${preferredTime || "any time"}
 Additional notes: ${notes || "none"}
 
 Your task:
-1. Introduce yourself politely, stating you're calling on behalf of ${patientName || "a patient"}
-2. Request an appointment for the stated reason
-3. Share the preferred date/time
-4. Confirm all details (date, time, provider, location)
-5. Thank them and end the call
+1. Greet the receptionist warmly. State your name is Riley and you are calling from WellSaid Health on behalf of ${patientName || "a patient"}.
+2. Provide the reason for the visit.
+3. Share the preferred date and time. If no preference was given, ask for the next available slot.
+4. If the receptionist offers a slot, confirm the exact date, time, provider name, and clinic location by repeating them back.
+5. Ask if the patient needs to bring anything or prepare.
+6. Thank them and end the call politely.
 
-Be concise, polite, and professional.`,
+Rules:
+- Be concise. Clinic staff are busy.
+- Never invent or assume medical details. Only share information you were explicitly given.
+- If asked a medical question you cannot answer, say you do not have that information and the patient or their family will follow up directly.
+- If the preferred time is unavailable, be flexible and accept a reasonable alternative. Confirm with clear details.
+- If you reach voicemail, leave a brief message with the patient name, reason, and ask them to return the call.
+- Do not discuss insurance, payment, or billing.
+- Always confirm the final appointment details before ending the call.`,
           },
         ],
       },
-      voice: { provider: "11labs", voiceId: "jennifer" },
-    },
-  });
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+      voice: {
+        provider: "vapi",
+        voiceId: "Elliot",
+      },
+    };
+  }
+
+  console.log("[vapi] Creating call with payload:", JSON.stringify(callPayload, null, 2));
+  const callResponse = await vapiRequest("/call", "POST", callPayload);
+  console.log("[vapi] Call created:", JSON.stringify(callResponse, null, 2));
 
   const callId: string = callResponse.id;
 
@@ -97,8 +157,7 @@ Be concise, polite, and professional.`,
     await new Promise((r) => setTimeout(r, pollIntervalMs));
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const status: any = await (vapi.calls as any).get({ id: callId });
+      const status = await vapiRequest(`/call/${callId}`, "GET");
       if (status.transcript) {
         callTranscript = status.transcript;
       }
@@ -115,7 +174,8 @@ Be concise, polite, and professional.`,
           message: "Call in progress...",
         })
       );
-    } catch {
+    } catch (e) {
+      console.error("[vapi] Poll error:", e);
       break;
     }
   }
