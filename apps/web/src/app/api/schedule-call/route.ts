@@ -103,7 +103,7 @@ async function runVapiCall(
       },
       model: {
         provider: "openai",
-        model: "gpt-4o-mini",
+        model: "gpt-5.2",
         messages: [
           {
             role: "system",
@@ -340,7 +340,7 @@ export const POST = async (req: Request) => {
           }
 
           const { object } = await generateObject({
-            model: openai("gpt-4o-mini"),
+            model: openai("gpt-5.2"),
             schema: schedulingResultSchema,
             prompt: `${useVapi ? "Analyze this real phone call transcript" : "You are simulating the result of a phone call to a hospital to schedule an appointment"}.
 

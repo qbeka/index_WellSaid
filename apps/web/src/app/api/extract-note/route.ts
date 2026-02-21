@@ -38,7 +38,7 @@ export const POST = async (req: Request) => {
   const languageName = language || "English";
 
   const { object } = await generateObject({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-5.2"),
     schema: noteSchema,
     prompt: `You are a healthcare note organizer. The user has provided a raw health note or voice transcription. Process it into structured data.
 

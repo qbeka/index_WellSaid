@@ -63,7 +63,7 @@ export const POST = async (req: Request) => {
         : "";
 
     const { object } = await generateObject({
-      model: openai("gpt-4o-mini"),
+      model: openai("gpt-5.2"),
       schema: sessionSchema,
       prompt: `You are a medical visit summarizer helping patients understand their doctor visits. Analyze this transcript of a doctor-patient conversation and extract:
 

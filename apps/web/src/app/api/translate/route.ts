@@ -32,7 +32,7 @@ export const POST = async (req: Request) => {
     }
 
     const { object } = await generateObject({
-      model: openai("gpt-4o-mini"),
+      model: openai("gpt-5.2"),
       schema: translationSchema,
       prompt: `Translate the following text into ${targetLanguage}. Detect the source language automatically. Preserve the original meaning, tone, and medical terminology if present. If the text is already in the target language, return it as-is.
 
