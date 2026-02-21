@@ -56,7 +56,7 @@ export const LanguageSelect = ({ value, onChange }: LanguageSelectProps) => {
         onClick={() => setOpen(!open)}
         aria-label="Select language"
         aria-expanded={open}
-        className="glass-lang-btn flex h-12 w-full items-center justify-between rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-left text-base text-[var(--color-foreground)] outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
+        className="glass-lang-btn font-montserrat flex h-12 w-full items-center justify-between rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-left text-base text-[var(--color-foreground)] outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]"
       >
         <span className={selected ? "" : "text-[var(--color-muted)]"}>
           {selected ? selected.label : "Select your language"}
@@ -69,7 +69,7 @@ export const LanguageSelect = ({ value, onChange }: LanguageSelectProps) => {
       </button>
 
       {open && (
-        <div className="glass-lang-btn absolute top-14 z-50 max-h-64 w-full overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg">
+        <div className="glass-lang-btn font-montserrat absolute top-14 z-50 max-h-64 w-full overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg">
           {SUPPORTED_LANGUAGES.map((lang) => (
             <button
               key={lang.code}
