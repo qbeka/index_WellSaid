@@ -18,6 +18,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { RecordNoteSheet } from "./record-note-sheet";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useTranscription } from "@/hooks/use-transcription";
 
 type ActionItem = {
@@ -245,9 +247,17 @@ export const HomeContent = ({
                     <p className="mb-1 text-xs font-medium opacity-70">
                       {isUser ? t("home.you") : "WellSaid"}
                     </p>
-                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                      {text}
-                    </div>
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
+                        {text}
+                      </div>
+                    ) : (
+                      <div className="text-[15px] leading-relaxed [&_p]:m-0 [&_p+p]:mt-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {text}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}

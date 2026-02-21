@@ -2,6 +2,8 @@ import { ArrowLeft, Clock, MessageSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -60,9 +62,11 @@ const SessionDetailPage = async ({ params }: Props) => {
           <h2 className="mb-2 text-sm font-semibold text-[var(--color-foreground)]">
             Summary
           </h2>
-          <p className="text-[15px] leading-relaxed text-[var(--color-foreground)]">
-            {session.summary}
-          </p>
+          <div className="text-[15px] leading-relaxed text-[var(--color-foreground)] [&_p]:m-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {session.summary}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
 
@@ -96,7 +100,11 @@ const SessionDetailPage = async ({ params }: Props) => {
                 className="flex items-start gap-2 text-[15px] leading-relaxed text-[var(--color-foreground)]"
               >
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-accent)]" />
-                {item}
+                <div className="min-w-0 flex-1 [&_p]:m-0 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item}
+                  </ReactMarkdown>
+                </div>
               </li>
             ))}
           </ul>
@@ -112,9 +120,11 @@ const SessionDetailPage = async ({ params }: Props) => {
             </span>
           </summary>
           <div className="border-t border-[var(--color-border)] px-4 py-4">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-foreground)]">
-              {session.transcript}
-            </p>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-foreground)] [&_p]:m-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {session.transcript}
+              </ReactMarkdown>
+            </div>
           </div>
         </details>
       )}
