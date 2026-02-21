@@ -2,7 +2,7 @@
 
 **Understanding your health shouldn't be a privilege.**
 
-**WellSaid** is a healthcare copilot that manages an entire doctor's visit lifecycle for you. Ensuring that language and memory don't get in the way of you recieving the best care available. Everyone deserves to know what is going on with them medically, and language should not be getting in the way of that.  
+**WellSaid** is a healthcare copilot that manages an entire doctor's visit lifecycle for you. Ensuring that language and memory don't get in the way of you receiving the best care available. Everyone deserves to know what is going on with them medically, and language should not be getting in the way of that.  
 
 ---
 
@@ -12,13 +12,14 @@ As children of immigrants, many of us have seen our parents or grandparents stru
 
 As healthcare continues to rely more on technology, especially digital medical reporting, accessibility becomes even more important. Yet many of these tools are not designed with elderly users, non-English speakers, or people with low digital confidence in mind. If healthcare technology is meant to improve care, it must also be built in a way that includes everyone.
 
-This isn't just something a few people deale with and the stats prove it:
+This isn't just something a few people deal with and the stats prove it:
 
-- **82%** of older adults believe the healthcare system is unprepared to meet their needs. The danger is even greater for those facing language barriers.
-- Patients with limited English proficiency (LEP) are **nearly twice as likely** to suffer physical harm from medical errors compared to English-speaking patients.
-- Low health literacy leads to **68% more** misinterpretations of prescriptions.
-- Patients with language barriers have **11% to 14% higher odds** of hospital readmission when professional interpretation is missing.
-- Communication errors are the root cause of **59%** of serious adverse events in clinical settings.
+- **82%** of older adults say the healthcare system is not prepared for the growing and changing needs of an aging population.
+- LEP (limited English proficiency) patients are much more likely to experience physical harm in adverse events: **49.1%** of adverse events involving LEP patients caused physical harm vs **29.5%** for English-speaking patients.
+- Low health literacy is linked to major medication misunderstanding: in one systematic review, **68%** of people with low health literacy misinterpreted medication schedules, vs **23%** in the high-literacy group.
+- Language discordance is associated with higher readmission risk: a meta-analysis found adult patients with language-discordant care had **11%** higher odds of hospital readmission. In studies that did not specify any interpreter use, odds were **14%** higher.
+- Communication problems are a root cause in **59%** of serious adverse events.
+- Cognitive impairment compounds engagement barriers: in a study of 493 older adults, moderate cognitive impairment was linked to being **4.07x** more likely to feel uncomfortable asking doctors questions and **5.34x** more likely to delay care due to embarrassment.
 
 > Sources:
 > 1. [The Growing Demand for Age-Friendly Care (John A. Hartford Foundation)](https://www.johnahartford.org/images/uploads/resources/The_Growing_Demand_for_Age-Friendly_Care_Report_FINAL.pdf)
@@ -34,17 +35,17 @@ WellSaid is a healthcare copilot designed to manage the entire doctor's visit li
 
 By capturing conversations, daily health notes, and complex documents, WellSaid turns data into formats that are easy to understand and act upon.
 
-**Understand and Translate** -- Record and explain visits, turning confusing medical language into clear, structured next steps in the patient's preferred language.
+**Understand and Translate:** Record and explain visits, turning confusing medical language into clear, structured next steps in the patient's preferred language.
 
-**Scheduling** -- Manage the logistics of the before, during, and after stages of appointments so nothing falls through the cracks.
+**Scheduling:** Manage the logistics of the before, during, and after stages of appointments so nothing falls through the cracks.
 
-**Success** -- Transform dense paperwork into data that doctors can easily use, so families don't have to rely on memory recall alone.
+**Success:** Transform dense paperwork into data that doctors can easily use, so families don't have to rely on memory recall alone.
 
-We aren't just building for efficiency. We are building to ensure that no son or daughter has to watch their parents struggle to be heard in a moment of crisis. WellSaid is about protecting dignity, reducing family stress, and ensuring that everyone -- regardless of the language they speak -- knows exactly what comes next for their health.
+We aren't just building for efficiency. We are building to ensure that no son or daughter has to watch their parents struggle to be heard in a moment of crisis. WellSaid is about protecting dignity, reducing family stress, and ensuring that everyone knows exactly what comes next for their health, regardless of what language they speak.
 
 ---
 
-## Features
+## Key Features
 
 ### Health Notes and Action Items
 Record a visit or health concern by voice. The app converts it into structured notes and automatically extracts follow-up tasks.
@@ -71,14 +72,36 @@ UI and AI responses available in multiple languages, including English, Spanish,
 
 ## Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS, Motion |
-| **Backend and Data** | Next.js API routes, Supabase Auth, Supabase Database (Postgres with Row Level Security) |
-| **AI** | Vercel AI SDK, OpenAI GPT-4o-mini (chat), GPT-4o (vision), Zod schemas for structured outputs |
-| **Voice** | AssemblyAI streaming transcription, Vapi SDK for outbound AI voice calls |
-| **Mobile** | React Native (Expo) for iOS and Android |
-| **i18n** | Language preferences propagate across UI and all LLM calls |
+### Frontend
+- **Next.js 16** (App Router)
+- **React 19**
+- **Tailwind CSS**
+- **Motion** (animations)
+
+### Backend & Data
+- **Next.js API Routes**
+- **Supabase Auth**
+- **Supabase Postgres Database**
+  - Row Level Security (RLS) enabled
+
+### AI
+- **Vercel AI SDK**
+- **OpenAI**
+  - **GPT-4o-mini** for chat
+  - **GPT-4o** for vision
+- **Zod** schemas for structured outputs
+
+### Voice
+- **AssemblyAI** (streaming transcription)
+- **Vapi SDK** (outbound AI voice calls)
+
+### Mobile
+- **React Native (Expo)** for iOS and Android
+
+### Internationalization
+- **Language-aware UX**
+  - User language preferences propagate across the UI
+  - The same language preferences are passed into all LLM calls
 
 ---
 
