@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signInWithGoogle } from "./actions";
+
+import Image from "next/image";
+import sphereImage from "@/images/sphere.png";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [mounted, setMounted] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  console.log("sphereImage =", sphereImage);
+
+  useEffect(() => {
+    const transition1 = setTimeout(() => setMounted(true), 100);
+    const transition2 = setTimeout(() => setShowButton(true), 900);
+
+    return () => {
+      clearTimeout(transition1);
+      clearTimeout(transition2);
+    };
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -24,25 +41,60 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-10">
-      <div className="flex flex-col items-center gap-3">
-        <span
-          className="text-3xl tracking-tight text-[var(--color-accent)]"
-          style={{ fontFamily: "var(--font-dancing)" }}
-        >
-          WellSaid
-        </span>
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-[15px] font-medium text-[var(--color-foreground)]">
-            Making healthcare easier for all
-          </p>
-          <p className="text-sm text-[var(--color-muted)]">
-            Sign into your account below
-          </p>
-        </div>
-      </div>
+    <> 
+      <style>{`
+        @keyframes orb-float {
+          0%   { transform: rotate(0deg) scale(1); }
+          33%  { transform: rotate(4deg) scale(1.03); }
+          66%  { transform: rotate(-3deg) scale(0.90); }
+          100% { transform: rotate(0deg) scale(1); }
+        }
+        .orb-animate {
+          animation: orb-float 15s ease-in-out infinite;
+        }
+      `}</style>
+    
+      <div
+        className="fixed inset-0 flex items-center justify-center overflow-hidden"
+        style={{ backgroundColor: "#f0ece6", fontFamily: "'Instrument Sans', sans-serif" }}>
 
-      <div className="flex w-full flex-col gap-4">
+        <div
+          className={`relative flex items-center justify-center transition-all duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            mounted ? "opacity-100 scale-100" : "opacity-0 scale-90"
+          }`}
+        >
+      
+        <Image
+          src={sphereImage}
+          alt="Background Gradient Sphere Image"
+          width={1000}
+          height={1000}
+          className="orb-animate"
+            
+        />
+
+        <div className="absolute z-10 flex flex-col items-center text-white pointer-events-none select-none">
+          <span className="text-[2rem] font-light tracking-wider opacity-90 mb-0.5 drop-shadow-sm" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400}}>
+            Welcome to
+          </span>
+          <span className="text-[4rem] leading-none tracking-tight drop-shadow-sm" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600 }}>
+            WellSaid
+          </span>
+          </div>
+        </div>
+
+        <div
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            showButton
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 translate-y-4 pointer-events-none"
+          }`}
+          style={{
+            left: "50%",
+            bottom: "35%",
+            transform: "translateX(-50%)"
+          }}
+        >
         {error && (
           <p className="text-center text-sm text-[var(--color-danger)]">
             {error}
@@ -79,10 +131,11 @@ const LoginPage = () => {
               fill="#EA4335"
             />
           </svg>
-          {loading ? "Redirecting..." : "Continue with Google"}
+            {loading ? "Redirecting..." : "Continue with Google"}
         </button>
       </div>
     </div>
+  </>
   );
 };
 
