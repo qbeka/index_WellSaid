@@ -12,6 +12,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: "pt", label: "Portuguese" },
   { code: "fr", label: "French" },
   { code: "de", label: "German" },
+  { code: "nl", label: "Dutch" },
   { code: "it", label: "Italian" },
   { code: "ru", label: "Russian" },
   { code: "hi", label: "Hindi" },

@@ -53,3 +53,27 @@ body {
     -webkit-backdrop-filter: none;
   }
 }
+
+.high-legibility {
+  --font-size-base: 18px;
+  --line-height-base: 1.8;
+  letter-spacing: 0.02em;
+}
+
+.high-legibility body,
+.high-legibility * {
+  font-weight: 500 !important;
+  line-height: 1.8 !important;
+}
+
+.high-legibility h1, .high-legibility h2, .high-legibility h3 {
+  font-weight: 700 !important;
+}
+
+.high-legibility p, .high-legibility span, .high-legibility li, .high-legibility label, .high-legibility input, .high-legibility textarea, .high-legibility button {
+  font-size: 1.1em !important;
+}
+
+.high-legibility .text-sm, .high-legibility .text-xs {
+  font-size: 0.95rem !important;
+}

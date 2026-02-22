@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Globe, Phone } from "lucide-react";
+import { User, Globe, Phone, Users } from "lucide-react";
 import { LanguageSelect } from "@/components/language-select";
 import { completeOnboarding } from "./actions";
 import { t as translate } from "@/i18n";
@@ -9,13 +9,15 @@ import { t as translate } from "@/i18n";
 import Image from "next/image";
 import backgroundImage from "@/images/background.png";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 const OnboardingPage = () => {
   const [step, setStep] = useState<Step>(1);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("");
+  const [genderIdentity, setGenderIdentity] = useState("");
+  const [pronouns, setPronouns] = useState("");
   const [hospitalPhone, setHospitalPhone] = useState("");
   const [phoneExtension, setPhoneExtension] = useState("");
   const [error, setError] = useState("");
@@ -30,6 +32,7 @@ const OnboardingPage = () => {
   const step1Valid = firstName.trim().length > 0 && lastName.trim().length > 0;
   const step2Valid = preferredLanguage.length > 0;
   const step3Valid = true;
+  const step4Valid = true;
 
   const handleContinue = async () => {
     if (step === 1 && step1Valid) {
@@ -43,6 +46,11 @@ const OnboardingPage = () => {
     }
 
     if (step === 3) {
+      setStep(4);
+      return;
+    }
+
+    if (step === 4) {
       setLoading(true);
       setError("");
 
@@ -50,6 +58,8 @@ const OnboardingPage = () => {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         preferredLanguage,
+        genderIdentity: genderIdentity.trim(),
+        pronouns: pronouns.trim(),
         hospitalPhone: hospitalPhone.trim(),
         phoneExtension: phoneExtension.trim(),
       });
@@ -64,29 +74,34 @@ const OnboardingPage = () => {
   const handleBack = () => {
     if (step === 2) setStep(1);
     if (step === 3) setStep(2);
+    if (step === 4) setStep(3);
   };
 
   const isCurrentStepValid =
     (step === 1 && step1Valid) ||
     (step === 2 && step2Valid) ||
-    (step === 3 && step3Valid);
+    (step === 3 && step3Valid) ||
+    (step === 4 && step4Valid);
 
   const stepIcon = {
     1: <User size={32} className="text-[var(--color-accent)]" />,
     2: <Globe size={32} className="text-[var(--color-accent)]" />,
-    3: <Phone size={32} className="text-[var(--color-accent)]" />,
+    3: <Users size={32} className="text-[var(--color-accent)]" />,
+    4: <Phone size={32} className="text-[var(--color-accent)]" />,
   };
 
   const stepTitle = {
     1: t("onboarding.nameTitle"),
     2: t("onboarding.langTitle"),
-    3: t("onboarding.phoneTitle"),
+    3: t("onboarding.genderTitle"),
+    4: t("onboarding.phoneTitle"),
   };
 
   const stepSubtitle = {
     1: t("onboarding.nameSubtitle"),
     2: t("onboarding.langSubtitle"),
-    3: t("onboarding.phoneSubtitle"),
+    3: t("onboarding.genderSubtitle"),
+    4: t("onboarding.phoneSubtitle"),
   };
 
  return (
@@ -137,7 +152,7 @@ const OnboardingPage = () => {
          <div className="flex w-full max-w-sm flex-col items-center gap-8">
  
            <div className="flex items-center gap-2">
-             {[1, 2, 3].map((s) => (
+             {[1, 2, 3, 4].map((s) => (
                <div
                  key={s}
                  className="h-1.5 w-8 rounded-full transition-all duration-300"
@@ -191,27 +206,51 @@ const OnboardingPage = () => {
                />
              )}
  
-             {step === 3 && (
-               <>
-                 <input
-                   type="tel"
-                   placeholder="(555) 555-5555"
-                   value={hospitalPhone}
-                   onChange={(e) => setHospitalPhone(e.target.value)}
-                   autoFocus
-                   aria-label={t("profile.hospitalPhone")}
-                   className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
-                 />
-                 <input
-                   type="text"
-                   placeholder="Ext. (optional)"
-                   value={phoneExtension}
-                   onChange={(e) => setPhoneExtension(e.target.value)}
-                   aria-label="Phone extension"
-                   className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
-                 />
-               </>
-             )}
+            {step === 3 && (
+              <>
+                <input
+                  type="text"
+                  placeholder={t("onboarding.genderPlaceholder")}
+                  value={genderIdentity}
+                  onChange={(e) => setGenderIdentity(e.target.value)}
+                  autoFocus
+                  aria-label={t("onboarding.genderIdentity")}
+                  className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
+                  style={{ fontWeight: 500 }}
+                />
+                <input
+                  type="text"
+                  placeholder={t("onboarding.pronounsPlaceholder")}
+                  value={pronouns}
+                  onChange={(e) => setPronouns(e.target.value)}
+                  aria-label={t("onboarding.pronouns")}
+                  className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
+                  style={{ fontWeight: 500 }}
+                />
+              </>
+            )}
+
+            {step === 4 && (
+              <>
+                <input
+                  type="tel"
+                  placeholder="(555) 555-5555"
+                  value={hospitalPhone}
+                  onChange={(e) => setHospitalPhone(e.target.value)}
+                  autoFocus
+                  aria-label={t("profile.hospitalPhone")}
+                  className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
+                />
+                <input
+                  type="text"
+                  placeholder="Ext. (optional)"
+                  value={phoneExtension}
+                  onChange={(e) => setPhoneExtension(e.target.value)}
+                  aria-label="Phone extension"
+                  className="glass-input h-12 w-full rounded-full px-5 text-base font-montserrat"
+                />
+              </>
+            )}
  
              {error && (
               <p className="text-center text-sm text-[var(--color-danger)]">
@@ -223,10 +262,10 @@ const OnboardingPage = () => {
                type="button"
                onClick={handleContinue}
                disabled={!isCurrentStepValid || loading}
-               aria-label={step === 3 ? t("onboarding.getStarted") : t("onboarding.continue")}
-               className="glass-button h-12 w-full rounded-full text-base font-montserrat"
-             >
-               {loading ? t("common.saving") : step === 3 ? t("onboarding.getStarted") : t("onboarding.continue")}
+              aria-label={step === 4 ? t("onboarding.getStarted") : t("onboarding.continue")}
+              className="glass-button h-12 w-full rounded-full text-base font-montserrat"
+            >
+              {loading ? t("common.saving") : step === 4 ? t("onboarding.getStarted") : t("onboarding.continue")}
              </button>
  
              {step > 1 && (

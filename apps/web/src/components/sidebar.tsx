@@ -58,6 +58,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const [selectedLang, setSelectedLang] = useState(lang);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [highLegibility, setHighLegibility] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -77,7 +78,7 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("hospital_phone, phone_extension, preferred_language")
+          .select("hospital_phone, phone_extension, preferred_language, high_legibility")
           .eq("id", user.id)
           .single();
 
@@ -85,6 +86,8 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
           setHospitalPhone(profile.hospital_phone || "");
           setPhoneExtension(profile.phone_extension || "");
           setSelectedLang(profile.preferred_language || "en");
+          setHighLegibility(profile.high_legibility || false);
+          if (profile.high_legibility) document.documentElement.classList.add('high-legibility');
         }
       }
     };
@@ -131,8 +134,15 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
           hospital_phone: hospitalPhone.trim() || null,
           phone_extension: phoneExtension.trim() || null,
           preferred_language: selectedLang,
+          high_legibility: highLegibility,
         })
         .eq("id", user.id);
+    }
+
+    if (highLegibility) {
+      document.documentElement.classList.add('high-legibility');
+    } else {
+      document.documentElement.classList.remove('high-legibility');
     }
 
     setSaving(false);
@@ -272,6 +282,33 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[12px] font-medium text-[var(--color-foreground)]">
+                        {t("settings.highLegibility")}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-muted)]">
+                        {t("settings.highLegibilityDesc")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setHighLegibility(!highLegibility)}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${
+                        highLegibility ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
+                      }`}
+                      aria-label={t("settings.highLegibility")}
+                      role="switch"
+                      aria-checked={highLegibility}
+                    >
+                      <span
+                        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          highLegibility ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
                   </div>
 
                   <button

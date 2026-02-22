@@ -13,7 +13,7 @@ import {
 import { Text } from "../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ArrowLeft, SendHorizonal, PenLine, Mic, Square } from "lucide-react-native";
+import { ArrowLeft, SendHorizonal, Mic, Square, PenLine } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { Colors } from "../lib/colors";
@@ -23,26 +23,26 @@ import { useI18n } from "../lib/i18n";
 
 type Phase = "ready" | "recording" | "typing" | "transcribing" | "processing";
 
-const EXTRACT_PROMPT = `You are a health note organizer. Given the user's raw health note text, extract a structured note.
+const EXTRACT_PROMPT = `You are a medical visit session organizer. Given the user's raw description of a doctor visit or medical appointment, extract a structured session summary.
 Return JSON with this exact shape:
 {
-  "title": "short descriptive title",
-  "content": "cleaned up version of the note",
-  "action_items": ["actionable item 1", "actionable item 2"]
+  "title": "short descriptive title for this visit",
+  "summary": "concise paragraph summarizing the visit",
+  "key_topics": ["topic1", "topic2"],
+  "action_items": ["follow up action 1", "follow up action 2"]
 }
-If there are no action items, return an empty array. Be concise.`;
+If there are no action items or topics, return empty arrays. Be concise and clear.`;
 
-export default function RecordNoteScreen() {
+export default function RecordSessionScreen() {
   const router = useRouter();
   const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("ready");
   const [typedText, setTypedText] = useState("");
-  const [transcript, setTranscript] = useState("");
   const recordingRef = useRef<Audio.Recording | null>(null);
 
   const handleSubmit = async (text: string) => {
-    if (text.trim().length < 5) {
-      Alert.alert("Too short", "Please provide more detail for your note.");
+    if (text.trim().length < 10) {
+      Alert.alert("Too short", "Please provide more detail for your session.");
       return;
     }
     setPhase("processing");
@@ -60,17 +60,19 @@ export default function RecordNoteScreen() {
 
       const parsed = JSON.parse(raw);
 
-      await supabase.from("health_notes").insert({
+      await supabase.from("sessions").insert({
         user_id: user.id,
-        title: parsed.title || "Health Note",
-        content: parsed.content || text.trim(),
+        title: parsed.title || "Visit Session",
+        transcript: text.trim(),
+        summary: parsed.summary || null,
+        key_topics: parsed.key_topics || [],
         action_items: parsed.action_items || [],
       });
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message || "Failed to process note.");
+      Alert.alert(t("common.error"), e?.message || t("record.failed"));
       setPhase("typing");
     }
   };
@@ -114,7 +116,6 @@ export default function RecordNoteScreen() {
         return;
       }
       setTypedText(text);
-      setTranscript(text);
       setPhase("typing");
     } catch (e: any) {
       Alert.alert(t("common.error"), e?.message || "Transcription failed.");
@@ -141,7 +142,7 @@ export default function RecordNoteScreen() {
         >
           <ArrowLeft size={22} color={Colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("recordNote.title")}</Text>
+        <Text style={styles.headerTitle}>{t("record.title")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -158,7 +159,7 @@ export default function RecordNoteScreen() {
           {phase === "processing" ? (
             <View style={styles.processingState}>
               <ActivityIndicator size="large" color={Colors.accent} />
-              <Text style={styles.processingText}>{t("common.processing")}</Text>
+              <Text style={styles.processingText}>{t("record.processing")}</Text>
             </View>
           ) : phase === "transcribing" ? (
             <View style={styles.processingState}>
@@ -167,35 +168,30 @@ export default function RecordNoteScreen() {
             </View>
           ) : phase === "typing" ? (
             <>
-              <Text style={styles.sectionLabel}>{t("recordNote.subtitle")}</Text>
+              <Text style={styles.sectionLabel}>{t("record.ready")}</Text>
               <View style={styles.transcriptCard}>
                 <TextInput
                   style={styles.textArea}
                   value={typedText}
                   onChangeText={setTypedText}
-                  placeholder={t("recordNote.placeholder")}
+                  placeholder={t("record.placeholder")}
                   placeholderTextColor={Colors.muted}
                   multiline
                   textAlignVertical="top"
                   autoFocus
-                  accessibilityLabel="Health note text"
+                  accessibilityLabel="Session text"
                 />
               </View>
             </>
           ) : (
             <>
               <Text style={styles.description}>
-                Record a voice note or type about your health. We'll organize it
-                into a structured note with action items.
+                {t("record.ready")}
               </Text>
               <View style={styles.transcriptCard}>
-                {transcript ? (
-                  <Text style={styles.transcriptText}>{transcript}</Text>
-                ) : (
-                  <Text style={styles.transcriptPlaceholder}>
-                    Your note will appear here
-                  </Text>
-                )}
+                <Text style={styles.transcriptPlaceholder}>
+                  {t("record.placeholder")}
+                </Text>
               </View>
             </>
           )}
@@ -210,7 +206,7 @@ export default function RecordNoteScreen() {
                   onPress={handleStartRecording}
                   activeOpacity={0.8}
                   accessibilityRole="button"
-                  accessibilityLabel="Record voice note"
+                  accessibilityLabel="Record voice"
                 >
                   <Mic size={28} color={Colors.accent} />
                 </TouchableOpacity>
@@ -219,7 +215,7 @@ export default function RecordNoteScreen() {
                   onPress={() => { setPhase("typing"); setTypedText(""); }}
                   activeOpacity={0.8}
                   accessibilityRole="button"
-                  accessibilityLabel="Write a note"
+                  accessibilityLabel="Type session"
                 >
                   <PenLine size={22} color={Colors.accent} />
                 </TouchableOpacity>
@@ -240,7 +236,7 @@ export default function RecordNoteScreen() {
                   <Square size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
-              <Text style={[styles.actionHint, { color: Colors.danger }]}>Recording... Tap to stop</Text>
+              <Text style={[styles.actionHint, { color: Colors.danger }]}>{t("record.recording")}</Text>
             </>
           )}
           {phase === "typing" && (
@@ -251,10 +247,10 @@ export default function RecordNoteScreen() {
                 disabled={!typedText.trim()}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Save note"
+                accessibilityLabel="Save session"
               >
                 <SendHorizonal size={18} color="#fff" />
-                <Text style={styles.submitBtnText}>Save Note</Text>
+                <Text style={styles.submitBtnText}>{t("record.submit")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelBtn}
@@ -283,7 +279,6 @@ const styles = StyleSheet.create({
   description: { fontSize: 15, fontFamily: "DMSans_400Regular", color: Colors.muted, lineHeight: 22, textAlign: "center" },
   sectionLabel: { fontSize: 13, fontFamily: "DMSans_500Medium", color: Colors.muted },
   transcriptCard: { minHeight: 160, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: Colors.border, backgroundColor: Colors.backgroundMuted, padding: 16 },
-  transcriptText: { fontSize: 15, fontFamily: "DMSans_400Regular", color: Colors.foreground, lineHeight: 22 },
   transcriptPlaceholder: { fontSize: 15, fontFamily: "DMSans_400Regular", color: Colors.muted, textAlign: "center", paddingTop: 40 },
   textArea: { flex: 1, minHeight: 140, fontSize: 15, fontFamily: "DMSans_400Regular", color: Colors.foreground, lineHeight: 22 },
   processingState: { alignItems: "center", justifyContent: "center", paddingTop: 80, gap: 16 },

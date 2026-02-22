@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useI18n } from "../../lib/i18n";
 import {
   View,
-  Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ArrowDownUp,
@@ -20,7 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react-native";
 import { Colors } from "../../lib/colors";
-import { apiPost } from "../../lib/api";
+import { callOpenAI } from "../../lib/openai";
 import { SUPPORTED_LANGUAGES } from "../../lib/translations";
 import * as Speech from "expo-speech";
 import * as Clipboard from "expo-clipboard";
@@ -94,6 +95,7 @@ const LanguagePicker = ({
 };
 
 export default function TranslateScreen() {
+  const { t } = useI18n();
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [detectedLang, setDetectedLang] = useState("");
@@ -117,14 +119,21 @@ export default function TranslateScreen() {
     setDetectedLang("");
 
     try {
-      const data = await apiPost<{
-        translatedText: string;
-        detectedSourceLanguage: string;
-      }>("/api/translate", { text, targetLanguage: targetLabel });
-      setTranslatedText(data.translatedText);
-      setDetectedLang(data.detectedSourceLanguage);
+      const result = await callOpenAI(
+        [
+          {
+            role: "system",
+            content: `You are a translator. Translate the user's text from ${sourceLabel} to ${targetLabel}. Return JSON: { "translatedText": "...", "detectedSourceLanguage": "..." }. The detectedSourceLanguage should be the language name you detect the input is in.`,
+          },
+          { role: "user", content: text },
+        ],
+        { type: "json_object" }
+      );
+      const parsed = JSON.parse(result);
+      setTranslatedText(parsed.translatedText || "");
+      setDetectedLang(parsed.detectedSourceLanguage || "");
     } catch {
-      Alert.alert("Error", "Translation failed. Please try again.");
+      Alert.alert(t("common.error"), t("translate.failed"));
     } finally {
       setLoading(false);
     }
@@ -157,7 +166,7 @@ export default function TranslateScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.screenTitle}>Translate</Text>
+      <Text style={styles.screenTitle}>{t("translate.title")}</Text>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -170,21 +179,21 @@ export default function TranslateScreen() {
         >
           <View style={styles.card}>
             <LanguagePicker
-              label="Source language"
+              label={t("translate.sourceLanguage")}
               selected={sourceLang}
               onSelect={setSourceLang}
               languages={SUPPORTED_LANGUAGES}
             />
             {detectedLang ? (
               <Text style={styles.detectedText}>
-                Detected: {detectedLang}
+                {t("translate.detected", { lang: detectedLang })}
               </Text>
             ) : null}
             <TextInput
               style={styles.textArea}
               value={sourceText}
               onChangeText={setSourceText}
-              placeholder="Enter text to translate..."
+              placeholder={t("translate.placeholder")}
               placeholderTextColor={Colors.muted}
               multiline
               textAlignVertical="top"
@@ -221,7 +230,7 @@ export default function TranslateScreen() {
 
           <View style={styles.card}>
             <LanguagePicker
-              label="Target language"
+              label={t("translate.targetLanguage")}
               selected={targetLang}
               onSelect={setTargetLang}
               languages={SUPPORTED_LANGUAGES}
@@ -229,7 +238,7 @@ export default function TranslateScreen() {
             {loading ? (
               <View style={styles.loadingArea}>
                 <ActivityIndicator size="small" color={Colors.accent} />
-                <Text style={styles.loadingText}>Translating...</Text>
+                <Text style={styles.loadingText}>{t("translate.translating")}</Text>
               </View>
             ) : translatedText ? (
               <>
@@ -260,7 +269,7 @@ export default function TranslateScreen() {
               </>
             ) : (
               <Text style={styles.placeholderText}>
-                Translation will appear here
+                {t("translate.resultPlaceholder")}
               </Text>
             )}
           </View>
@@ -279,7 +288,7 @@ export default function TranslateScreen() {
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.translateBtnText}>Translate</Text>
+              <Text style={styles.translateBtnText}>{t("translate.button")}</Text>
             )}
           </TouchableOpacity>
         </ScrollView>

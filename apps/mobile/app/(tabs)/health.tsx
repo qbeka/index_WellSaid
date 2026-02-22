@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -22,6 +22,7 @@ import {
   Plus,
 } from "lucide-react-native";
 import { Colors } from "../../lib/colors";
+import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
 import { fetchWithCache } from "../../lib/cache";
 import SegmentedControl from "../../components/SegmentedControl";
@@ -53,8 +54,6 @@ type Session = {
 
 type ActionItem = { text: string; source: string; sourceId: string; date: string };
 
-const TABS = ["Appointments", "Notes", "Sessions", "Actions"];
-
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -80,6 +79,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 };
 
 export default function HealthScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -115,7 +115,7 @@ export default function HealthScreen() {
       fetchWithCache("all-sessions", () =>
         supabase
           .from("sessions")
-          .select("id, title, summary, key_topics, created_at")
+          .select("id, title, summary, key_topics, action_items, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .then((r) => r.data ?? [])
@@ -134,12 +134,7 @@ export default function HealthScreen() {
         date: n.created_at,
       }))
     );
-    const sessionActions = (sessionsRes.data as Session[]).flatMap((s) =>
-      ((s.key_topics as unknown as string[]) ?? []).length
-        ? []
-        : []
-    );
-    const sessActionItems = (sessionsRes.data as any[]).flatMap((s: any) =>
+    const sessionActionItems = (sessionsRes.data as any[]).flatMap((s: any) =>
       (Array.isArray(s.action_items) ? s.action_items : []).map(
         (item: string) => ({
           text: item,
@@ -149,7 +144,7 @@ export default function HealthScreen() {
         })
       )
     );
-    const all = [...noteActions, ...sessActionItems].sort(
+    const all = [...noteActions, ...sessionActionItems].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
     setActionItems(all);
@@ -168,6 +163,8 @@ export default function HealthScreen() {
   const upcoming = appointments.filter((a) => a.status === "upcoming");
   const past = appointments.filter((a) => a.status !== "upcoming");
 
+  const TABS = [t("health.appointments"), t("health.notes"), t("health.sessions"), t("health.actions")];
+
   const renderAppointment = ({ item }: { item: Appointment }) => {
     const statusStyle = STATUS_STYLES[item.status] ?? STATUS_STYLES.upcoming;
     return (
@@ -185,7 +182,7 @@ export default function HealthScreen() {
             </Text>
             <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
               <Text style={[styles.badgeText, { color: statusStyle.text }]}>
-                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                {t(`health.${item.status}`)}
               </Text>
             </View>
           </View>
@@ -237,7 +234,7 @@ export default function HealthScreen() {
               <View style={styles.metaItem}>
                 <ListChecks size={12} color={Colors.accent} />
                 <Text style={[styles.metaText, { color: Colors.accent }]}>
-                  {actionCount} {actionCount === 1 ? "action" : "actions"}
+                  {actionCount} {actionCount === 1 ? t("health.action") : t("health.actions_plural")}
                 </Text>
               </View>
             )}
@@ -299,9 +296,9 @@ export default function HealthScreen() {
     </View>
   );
 
-  const renderEmpty = (label: string) => (
+  const renderEmpty = (emptyKey: string) => (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyText}>No {label.toLowerCase()} yet</Text>
+      <Text style={styles.emptyText}>{t(emptyKey)}</Text>
     </View>
   );
 
@@ -315,7 +312,7 @@ export default function HealthScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.screenTitle}>Health</Text>
+      <Text style={styles.screenTitle}>{t("health.title")}</Text>
       <View style={styles.segmentWrapper}>
         <SegmentedControl tabs={TABS} active={tab} onChange={setTab} />
       </View>
@@ -327,7 +324,7 @@ export default function HealthScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderAppointment}
             contentContainerStyle={styles.listContent}
-            ListEmptyComponent={() => renderEmpty("Appointments")}
+            ListEmptyComponent={() => renderEmpty("health.noAppointments")}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -355,7 +352,7 @@ export default function HealthScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderNote}
             contentContainerStyle={styles.listContent}
-            ListEmptyComponent={() => renderEmpty("Notes")}
+            ListEmptyComponent={() => renderEmpty("health.noNotes")}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -382,7 +379,7 @@ export default function HealthScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderSession}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={() => renderEmpty("Sessions")}
+          ListEmptyComponent={() => renderEmpty("health.noSessions")}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -399,7 +396,7 @@ export default function HealthScreen() {
           keyExtractor={(item, i) => `${item.sourceId}-${i}`}
           renderItem={renderActionItem}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={() => renderEmpty("Action Items")}
+          ListEmptyComponent={() => renderEmpty("health.noActions")}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

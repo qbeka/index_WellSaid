@@ -1,37 +1,44 @@
 import { useState } from "react";
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import GradientBackground from "../../components/GradientBackground";
 import LanguageSelect from "../../components/LanguageSelect";
 import { supabase } from "../../lib/supabase";
+import { useI18n } from "../../lib/i18n";
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { t, setLang } = useI18n();
   const [step, setStep] = useState(0);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [language, setLanguage] = useState("en");
   const [hospitalPhone, setHospitalPhone] = useState("");
   const [phoneExtension, setPhoneExtension] = useState("");
+  const [genderIdentity, setGenderIdentity] = useState("");
+  const [pronouns, setPronouns] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isValid =
     step === 0
       ? firstName.trim().length > 0
-      : step === 1
-        ? true
-        : hospitalPhone.trim().length > 0;
+      : true;
+
+  const handleLanguageSelect = (code: string) => {
+    setLanguage(code);
+    setLang(code);
+  };
 
   const handleNext = async () => {
-    if (step < 2) {
+    if (step < 3) {
       setStep(step + 1);
       return;
     }
@@ -48,6 +55,8 @@ export default function OnboardingScreen() {
         preferred_language: language,
         hospital_phone: hospitalPhone.trim(),
         phone_extension: phoneExtension.trim(),
+        gender_identity: genderIdentity.trim() || null,
+        pronouns: pronouns.trim() || null,
         onboarded: true,
         updated_at: new Date().toISOString(),
       });
@@ -63,7 +72,7 @@ export default function OnboardingScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.progress}>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <View
               key={i}
               style={[styles.dot, i <= step && styles.dotActive]}
@@ -74,10 +83,10 @@ export default function OnboardingScreen() {
         <View style={styles.content}>
           {step === 0 && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>What's your name?</Text>
+              <Text style={styles.stepTitle}>{t("onboarding.nameTitle")}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="First name"
+                placeholder={t("onboarding.firstName")}
                 placeholderTextColor="rgba(255,255,255,0.45)"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -85,7 +94,7 @@ export default function OnboardingScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Last name"
+                placeholder={t("onboarding.lastName")}
                 placeholderTextColor="rgba(255,255,255,0.45)"
                 value={lastName}
                 onChangeText={setLastName}
@@ -95,21 +104,41 @@ export default function OnboardingScreen() {
           )}
           {step === 1 && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Preferred language</Text>
+              <Text style={styles.stepTitle}>{t("onboarding.langTitle")}</Text>
               <Text style={styles.stepSub}>
-                We'll use this across the app
+                {t("onboarding.langSubtitle")}
               </Text>
               <LanguageSelect
                 selectedCode={language}
-                onSelect={setLanguage}
+                onSelect={handleLanguageSelect}
                 light
               />
             </View>
           )}
           {step === 2 && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Hospital phone</Text>
-              <Text style={styles.stepSub}>For scheduling appointments</Text>
+              <Text style={styles.stepTitle}>{t("onboarding.genderTitle")}</Text>
+              <Text style={styles.stepSub}>{t("onboarding.genderSubtitle")}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t("onboarding.genderPlaceholder")}
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                value={genderIdentity}
+                onChangeText={setGenderIdentity}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={t("onboarding.pronounsPlaceholder")}
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                value={pronouns}
+                onChangeText={setPronouns}
+              />
+            </View>
+          )}
+          {step === 3 && (
+            <View style={styles.stepContent}>
+              <Text style={styles.stepTitle}>{t("onboarding.phoneTitle")}</Text>
+              <Text style={styles.stepSub}>{t("onboarding.phoneSubtitle")}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="(555) 555-5555"
@@ -137,7 +166,7 @@ export default function OnboardingScreen() {
               style={styles.backBtn}
               activeOpacity={0.7}
             >
-              <Text style={styles.backText}>Back</Text>
+              <Text style={styles.backText}>{t("common.back")}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -150,7 +179,7 @@ export default function OnboardingScreen() {
               <ActivityIndicator color="#1a2b3c" />
             ) : (
               <Text style={styles.nextText}>
-                {step === 2 ? "Get Started" : "Next"}
+                {step === 3 ? t("common.getStarted") : t("common.next")}
               </Text>
             )}
           </TouchableOpacity>

@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import { streamText, generateText, convertToModelMessages, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -11,8 +11,10 @@ const buildSystemPrompt = (
   notes: string,
   appointments: string,
   documents: string,
-  sessions: string
-) => `You are a healthcare assistant for ${userName} using the WellSaid app. Respond in ${language}.
+  sessions: string,
+  pronouns?: string | null,
+  genderIdentity?: string | null
+) => `You are a healthcare assistant for ${userName} using the WellSaid app. Respond in ${language}.${pronouns ? `\nThe user's preferred pronouns are: ${pronouns}.` : ""}${genderIdentity ? ` Their gender identity is: ${genderIdentity}.` : ""}
 
 STRICT RULES:
 - You may ONLY use the information provided below to answer questions.
@@ -36,6 +38,8 @@ ${sessions || "No visit sessions recorded yet."}`;
 
 export const POST = async (req: Request) => {
   try {
+    const authHeader = req.headers.get("authorization");
+    const isBearerClient = authHeader?.startsWith("Bearer ");
     const { messages } = (await req.json()) as { messages: UIMessage[] };
     const supabase = await createClient();
 
@@ -52,7 +56,7 @@ export const POST = async (req: Request) => {
 
     const [profileRes, notesRes, appointmentsRes, documentsRes, sessionsRes] =
       await Promise.all([
-        supabase.from("profiles").select("first_name, last_name, preferred_language").eq("id", user.id).single(),
+        supabase.from("profiles").select("first_name, last_name, preferred_language, pronouns, gender_identity").eq("id", user.id).single(),
         supabase
           .from("health_notes")
           .select("title, content, action_items, created_at")
@@ -99,6 +103,8 @@ export const POST = async (req: Request) => {
       fr: "French",
       hi: "Hindi",
       ru: "Russian",
+      de: "German",
+      nl: "Dutch",
     };
 
     const language =
@@ -115,10 +121,25 @@ export const POST = async (req: Request) => {
       formatItems(notesRes.data as Record<string, unknown>[] | null),
       formatItems(appointmentsRes.data as Record<string, unknown>[] | null),
       formatItems(documentsRes.data as Record<string, unknown>[] | null),
-      formatItems(sessionsRes.data as Record<string, unknown>[] | null)
+      formatItems(sessionsRes.data as Record<string, unknown>[] | null),
+      profile?.pronouns,
+      profile?.gender_identity
     );
 
     const modelMessages = await convertToModelMessages(messages);
+
+    if (isBearerClient) {
+      const result = await generateText({
+        model: openai("gpt-5.2"),
+        system: systemPrompt,
+        messages: modelMessages,
+      });
+
+      return new Response(
+        JSON.stringify({ text: result.text }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     const result = streamText({
       model: openai("gpt-5.2"),

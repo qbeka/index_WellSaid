@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -9,21 +8,29 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Switch,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { LogOut, Phone, Globe } from "lucide-react-native";
+import { LogOut, Phone, Globe, Eye } from "lucide-react-native";
 import { Colors } from "../../lib/colors";
 import { supabase } from "../../lib/supabase";
 import LanguageSelect from "../../components/LanguageSelect";
+import { useI18n } from "../../lib/i18n";
+import { useAccessibility } from "../../lib/accessibility";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t, setLang } = useI18n();
+  const { setHighLegibility: setGlobalHighLegibility } = useAccessibility();
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [language, setLanguage] = useState("en");
   const [hospitalPhone, setHospitalPhone] = useState("");
   const [phoneExtension, setPhoneExtension] = useState("");
+  const [highLegibility, setHighLegibility] = useState(false);
+  const [careCirclePhone, setCareCirclePhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -44,7 +51,7 @@ export default function SettingsScreen() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("preferred_language, hospital_phone, phone_extension")
+        .select("preferred_language, hospital_phone, phone_extension, high_legibility, care_circle_phone")
         .eq("id", user.id)
         .single();
 
@@ -52,6 +59,8 @@ export default function SettingsScreen() {
         setLanguage(profile.preferred_language || "en");
         setHospitalPhone(profile.hospital_phone || "");
         setPhoneExtension(profile.phone_extension || "");
+        setHighLegibility(profile.high_legibility || false);
+        setCareCirclePhone(profile.care_circle_phone || "");
       }
       setLoading(false);
     };
@@ -72,24 +81,28 @@ export default function SettingsScreen() {
           preferred_language: language,
           hospital_phone: hospitalPhone.trim() || null,
           phone_extension: phoneExtension.trim() || null,
+          high_legibility: highLegibility,
+          care_circle_phone: careCirclePhone.trim() || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
 
+      setLang(language);
+      setGlobalHighLegibility(highLegibility);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      Alert.alert("Error", "Failed to save settings.");
+      Alert.alert(t("common.error"), t("settings.saveFailed"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("common.signOut"), t("settings.signOutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Sign Out",
+        text: t("common.signOut"),
         style: "destructive",
         onPress: async () => {
           await supabase.auth.signOut();
@@ -118,7 +131,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.screenTitle}>Settings</Text>
+      <Text style={styles.screenTitle}>{t("settings.title")}</Text>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -138,7 +151,7 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Globe size={14} color={Colors.muted} />
-            <Text style={styles.sectionLabel}>Language</Text>
+            <Text style={styles.sectionLabel}>{t("settings.language")}</Text>
           </View>
           <LanguageSelect selectedCode={language} onSelect={setLanguage} />
         </View>
@@ -146,7 +159,7 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Phone size={14} color={Colors.muted} />
-            <Text style={styles.sectionLabel}>Hospital Phone</Text>
+            <Text style={styles.sectionLabel}>{t("settings.hospitalPhone")}</Text>
           </View>
           <TextInput
             style={styles.input}
@@ -168,6 +181,38 @@ export default function SettingsScreen() {
           />
         </View>
 
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Eye size={14} color={Colors.muted} />
+            <Text style={styles.sectionLabel}>{t("settings.highLegibility")}</Text>
+          </View>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleDescription}>{t("settings.highLegibilityDesc")}</Text>
+            <Switch
+              value={highLegibility}
+              onValueChange={setHighLegibility}
+              trackColor={{ false: Colors.border, true: Colors.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Phone size={14} color={Colors.muted} />
+            <Text style={styles.sectionLabel}>{t("settings.careCirclePhone")}</Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            value={careCirclePhone}
+            onChangeText={setCareCirclePhone}
+            placeholder={t("settings.careCirclePhonePlaceholder")}
+            placeholderTextColor={Colors.muted}
+            keyboardType="phone-pad"
+            accessibilityLabel={t("settings.careCirclePhone")}
+          />
+        </View>
+
         <TouchableOpacity
           style={[styles.saveBtn, (saving || saved) && styles.saveBtnActive]}
           onPress={handleSave}
@@ -180,7 +225,7 @@ export default function SettingsScreen() {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <Text style={styles.saveBtnText}>
-              {saved ? "Saved" : "Save"}
+              {saved ? t("common.saved") : t("common.save")}
             </Text>
           )}
         </TouchableOpacity>
@@ -193,7 +238,7 @@ export default function SettingsScreen() {
           accessibilityLabel="Sign out"
         >
           <LogOut size={20} color={Colors.danger} />
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text style={styles.signOutText}>{t("common.signOut")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -268,6 +313,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "DMSans_600SemiBold",
     color: "#fff",
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 16,
+  },
+  toggleDescription: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "DMSans_400Regular",
+    color: Colors.muted,
+    marginRight: 12,
   },
   signOutBtn: {
     flexDirection: "row",

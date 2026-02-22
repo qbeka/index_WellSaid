@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -19,8 +19,9 @@ import {
 } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Colors } from "../../lib/colors";
+import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
-import { apiPost } from "../../lib/api";
+import { callOpenAI } from "../../lib/openai";
 import { fetchWithCache } from "../../lib/cache";
 
 type Document = {
@@ -40,6 +41,7 @@ const formatDate = (dateStr: string) =>
 
 export default function DocumentsScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,6 +77,9 @@ export default function DocumentsScreen() {
   const processImage = async (uri: string) => {
     setProcessing(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const response = await fetch(uri);
       const blob = await response.blob();
       const reader = new FileReader();
@@ -83,10 +88,43 @@ export default function DocumentsScreen() {
         reader.readAsDataURL(blob);
       });
 
-      await apiPost("/api/scan-document", { image: dataUrl });
+      const raw = await callOpenAI([
+        {
+          role: "system",
+          content: `You are a medical document scanner. Analyze the image and extract information. Return JSON:
+{
+  "title": "document title",
+  "summary": "brief summary of the document",
+  "document_type": "lab_result|prescription|insurance|referral|other",
+  "key_findings": ["finding 1", "finding 2"],
+  "medications": ["med 1", "med 2"]
+}
+If fields are not applicable, use empty arrays or null.`,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Please analyze this medical document." },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ] as any,
+        },
+      ], { type: "json_object" });
+
+      const parsed = JSON.parse(raw);
+
+      await supabase.from("documents").insert({
+        user_id: user.id,
+        title: parsed.title || "Scanned Document",
+        summary: parsed.summary || "",
+        document_type: parsed.document_type || "other",
+        key_findings: parsed.key_findings || [],
+        medications: parsed.medications || [],
+        image_url: dataUrl,
+      });
+
       await fetchData();
     } catch {
-      Alert.alert("Error", "Failed to process document. Please try again.");
+      Alert.alert(t("common.error"), t("documents.scanFailed"));
     } finally {
       setProcessing(false);
     }
@@ -96,8 +134,8 @@ export default function DocumentsScreen() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission needed",
-        "Camera access is required to scan documents."
+        t("documents.permissionTitle"),
+        t("documents.cameraPermission")
       );
       return;
     }
@@ -115,8 +153,8 @@ export default function DocumentsScreen() {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission needed",
-        "Photo library access is required to upload documents."
+        t("documents.permissionTitle"),
+        t("documents.galleryPermission")
       );
       return;
     }
@@ -140,7 +178,7 @@ export default function DocumentsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.screenTitle}>Documents</Text>
+      <Text style={styles.screenTitle}>{t("documents.title")}</Text>
 
       <View style={styles.actionRow}>
         <TouchableOpacity
@@ -149,10 +187,10 @@ export default function DocumentsScreen() {
           disabled={processing}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel="Scan with camera"
+          accessibilityLabel={t("documents.scanCamera")}
         >
           <Camera size={20} color={Colors.accent} />
-          <Text style={styles.actionBtnText}>Camera</Text>
+          <Text style={styles.actionBtnText}>{t("documents.camera")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
@@ -160,17 +198,17 @@ export default function DocumentsScreen() {
           disabled={processing}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel="Upload from gallery"
+          accessibilityLabel={t("documents.uploadGallery")}
         >
           <ImageIcon size={20} color={Colors.accent} />
-          <Text style={styles.actionBtnText}>Gallery</Text>
+          <Text style={styles.actionBtnText}>{t("documents.gallery")}</Text>
         </TouchableOpacity>
       </View>
 
       {processing && (
         <View style={styles.processingBanner}>
           <ActivityIndicator size="small" color={Colors.accent} />
-          <Text style={styles.processingText}>Processing document...</Text>
+          <Text style={styles.processingText}>{t("documents.processing")}</Text>
         </View>
       )}
 
@@ -187,9 +225,9 @@ export default function DocumentsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No documents yet</Text>
+            <Text style={styles.emptyText}>{t("documents.noDocuments")}</Text>
             <Text style={styles.emptySubtext}>
-              Use the camera or gallery to scan a medical document
+              {t("documents.emptySubtext")}
             </Text>
           </View>
         }

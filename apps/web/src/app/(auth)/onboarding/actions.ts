@@ -7,6 +7,8 @@ export const completeOnboarding = async (data: {
   firstName: string;
   lastName: string;
   preferredLanguage: string;
+  genderIdentity: string;
+  pronouns: string;
   hospitalPhone: string;
   phoneExtension: string;
 }) => {
@@ -26,6 +28,8 @@ export const completeOnboarding = async (data: {
       first_name: data.firstName,
       last_name: data.lastName,
       preferred_language: data.preferredLanguage,
+      gender_identity: data.genderIdentity || null,
+      pronouns: data.pronouns || null,
       hospital_phone: data.hospitalPhone || null,
       phone_extension: data.phoneExtension || null,
       updated_at: new Date().toISOString(),

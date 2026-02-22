@@ -1,13 +1,15 @@
 export const SUPPORTED_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "fr", label: "Français" },
-  { code: "es", label: "Español" },
-  { code: "zh", label: "普通话" },
   { code: "ar", label: "عربي" },
+  { code: "de", label: "Deutsch" },
+  { code: "en", label: "English" },
+  { code: "es", label: "Español" },
+  { code: "fr", label: "Français" },
   { code: "tl", label: "Filipino" },
   { code: "hi", label: "हिंदी" },
   { code: "ja", label: "日本語" },
   { code: "ko", label: "한국어" },
+  { code: "nl", label: "Nederlands" },
+  { code: "zh", label: "普通话" },
   { code: "pt", label: "Português" },
   { code: "ru", label: "Русский" },
   { code: "sq", label: "Shqip" },
@@ -18,6 +20,7 @@ export const SUPPORTED_LANGUAGES = [
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
 export const LANG_TO_BCP47: Record<string, string> = {
+  de: "de-DE",
   en: "en-US",
   es: "es-ES",
   zh: "zh-CN",
@@ -31,5 +34,6 @@ export const LANG_TO_BCP47: Record<string, string> = {
   sq: "sq-AL",
   fr: "fr-FR",
   hi: "hi-IN",
+  nl: "nl-NL",
   ru: "ru-RU",
 };

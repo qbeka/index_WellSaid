@@ -9,20 +9,24 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   } = await supabase.auth.getUser();
 
   let lang = "en";
+  let highLegibility = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("preferred_language")
+      .select("preferred_language, high_legibility")
       .eq("id", user.id)
       .single();
     if (profile?.preferred_language) {
       lang = profile.preferred_language;
     }
+    if (profile?.high_legibility) {
+      highLegibility = true;
+    }
   }
 
   return (
     <TranslationProvider lang={lang}>
-      <DashboardShell>{children}</DashboardShell>
+      <DashboardShell highLegibility={highLegibility}>{children}</DashboardShell>
     </TranslationProvider>
   );
 };

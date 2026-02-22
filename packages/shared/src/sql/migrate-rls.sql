@@ -3,6 +3,27 @@
 
 -- 1. Add missing columns
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone_extension text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS care_circle_phone text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS high_legibility boolean NOT NULL DEFAULT false;
+
+-- Care Circle Alerts (for Emergency Mode)
+CREATE TABLE IF NOT EXISTS public.care_circle_alerts (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  phone_number text NOT NULL,
+  transcript text,
+  note_title text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.care_circle_alerts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can insert own alerts" ON public.care_circle_alerts;
+CREATE POLICY "Users can insert own alerts"
+  ON public.care_circle_alerts FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view own alerts" ON public.care_circle_alerts;
+CREATE POLICY "Users can view own alerts"
+  ON public.care_circle_alerts FOR SELECT
+  USING (auth.uid() = user_id);
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS storage_path text;
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS document_type text;
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS key_findings jsonb NOT NULL DEFAULT '[]'::jsonb;

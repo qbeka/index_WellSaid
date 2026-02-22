@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TextInput,
@@ -12,6 +11,7 @@ import {
   Platform,
   RefreshControl,
 } from "react-native";
+import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -26,10 +26,14 @@ import {
   Square,
   Loader2,
   ArrowRight,
+  Settings,
+  X,
+  ShieldAlert,
 } from "lucide-react-native";
 import { Colors } from "../../lib/colors";
+import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
-import { apiPost } from "../../lib/api";
+import { sendChatMessage } from "../../lib/chat";
 import { fetchWithCache } from "../../lib/cache";
 
 type ActionItem = { text: string; source: string; date: string };
@@ -41,20 +45,6 @@ type Appointment = {
   status: string;
 };
 type ChatMessage = { role: "user" | "assistant"; content: string };
-
-const QUICK_PROMPTS = [
-  "Summarize my overall health.",
-  "What action items do I have?",
-  "What are my upcoming appointments?",
-  "Summarize my recent documents.",
-];
-
-const getGreeting = () => {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-};
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr + "T00:00:00");
@@ -73,8 +63,50 @@ const formatActionDate = (dateStr: string) => {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+const TypingIndicator = ({ label }: { label: string }) => {
+  const [dotCount, setDotCount] = useState(1);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount((prev) => (prev % 3) + 1);
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <Text style={styles.typingText}>{`${label}${".".repeat(dotCount)}`}</Text>;
+};
+
+const WORDS_PER_TICK = 2;
+const TICK_MS = 30;
+
+const TypewriterText = ({ text, style, onFinish }: { text: string; style: any; onFinish?: () => void }) => {
+  const [visibleCount, setVisibleCount] = useState(0);
+  const words = useRef(text.split(/(\s+)/)).current;
+  const totalParts = words.length;
+  const finished = visibleCount >= totalParts;
+
+  useEffect(() => {
+    if (finished) {
+      onFinish?.();
+      return;
+    }
+    const timer = setTimeout(() => {
+      setVisibleCount((prev) => Math.min(prev + WORDS_PER_TICK, totalParts));
+    }, TICK_MS);
+    return () => clearTimeout(timer);
+  }, [visibleCount, finished, totalParts, onFinish]);
+
+  return (
+    <Text style={style}>
+      {words.slice(0, visibleCount).join("")}
+      {!finished && <Text style={{ opacity: 0.4 }}>|</Text>}
+    </Text>
+  );
+};
+
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [firstName, setFirstName] = useState("");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
@@ -85,7 +117,15 @@ export default function HomeScreen() {
   const [inputText, setInputText] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [promptIndex, setPromptIndex] = useState(0);
+  const [typingIndex, setTypingIndex] = useState<number | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+
+  const QUICK_PROMPTS = [
+    t("home.prompt1"),
+    t("home.prompt2"),
+    t("home.prompt3"),
+    t("home.prompt4"),
+  ];
 
   const fetchData = useCallback(async () => {
     const {
@@ -174,17 +214,18 @@ export default function HomeScreen() {
     setMessages((prev) => [...prev, userMsg]);
     setChatLoading(true);
 
-    apiPost<{ text: string }>("/api/chat", {
-      messages: [...messages, userMsg].map((m) => ({
+    sendChatMessage(
+      [...messages, userMsg].map((m) => ({
         role: m.role,
         content: m.content,
-      })),
-    })
-      .then((res) => {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: res.text || "Sorry, I could not respond." },
-        ]);
+      }))
+    )
+      .then((text) => {
+        setMessages((prev) => {
+          const next = [...prev, { role: "assistant" as const, content: text }];
+          setTypingIndex(next.length - 1);
+          return next;
+        });
       })
       .catch(() => {
         setMessages((prev) => [
@@ -204,16 +245,17 @@ export default function HomeScreen() {
     setChatLoading(true);
 
     try {
-      const res = await apiPost<{ text: string }>("/api/chat", {
-        messages: [...messages, userMsg].map((m) => ({
+      const text = await sendChatMessage(
+        [...messages, userMsg].map((m) => ({
           role: m.role,
           content: m.content,
-        })),
+        }))
+      );
+      setMessages((prev) => {
+        const next = [...prev, { role: "assistant" as const, content: text }];
+        setTypingIndex(next.length - 1);
+        return next;
       });
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: res.text || "Sorry, I could not respond." },
-      ]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -232,9 +274,13 @@ export default function HomeScreen() {
     );
   }
 
-  const greeting = firstName
-    ? `${getGreeting()}, ${firstName}`
-    : getGreeting();
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return t("home.greeting.morning");
+    if (h < 17) return t("home.greeting.afternoon");
+    return t("home.greeting.evening");
+  };
+  const greeting = firstName ? `${getGreeting()}, ${firstName}` : getGreeting();
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -257,10 +303,23 @@ export default function HomeScreen() {
         >
           {messages.length === 0 ? (
             <>
+              <View style={styles.homeHeader}>
+                <View style={{ width: 40 }} />
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity
+                  style={styles.settingsBtn}
+                  onPress={() => router.push("/(tabs)/settings")}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Settings"
+                >
+                  <Settings size={22} color={Colors.muted} />
+                </TouchableOpacity>
+              </View>
               <View style={styles.greetingSection}>
                 <Text style={styles.greeting}>{greeting}</Text>
                 <Text style={styles.subtitle}>
-                  Your health assistant is here to help
+                  {t("home.subtitle")}
                 </Text>
               </View>
 
@@ -274,8 +333,8 @@ export default function HomeScreen() {
                 >
                   <Calendar size={18} color={Colors.accent} />
                   <Text style={styles.appointmentBannerText}>
-                    {appointments.length} upcoming{" "}
-                    {appointments.length === 1 ? "appointment" : "appointments"}
+                    {appointments.length} {t("home.upcoming")}{" "}
+                    {appointments.length === 1 ? t("home.appointment") : t("home.appointments")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -313,14 +372,14 @@ export default function HomeScreen() {
                   <View style={styles.sectionHeader}>
                     <View style={styles.sectionHeaderLeft}>
                       <ListChecks size={16} color={Colors.accent} />
-                      <Text style={styles.sectionTitle}>Action Items</Text>
+                      <Text style={styles.sectionTitle}>{t("home.actionItems")}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => router.push("/(tabs)/health")}
                       accessibilityRole="button"
                       accessibilityLabel="View all action items"
                     >
-                      <Text style={styles.viewAll}>View all</Text>
+                      <Text style={styles.viewAll}>{t("home.viewAll")}</Text>
                     </TouchableOpacity>
                   </View>
                   {actionItems.map((item, i) => (
@@ -350,7 +409,7 @@ export default function HomeScreen() {
                   accessibilityLabel="Record health note"
                 >
                   <NotebookPen size={20} color={Colors.accent} />
-                  <Text style={styles.quickBtnText}>Record Note</Text>
+                  <Text style={styles.quickBtnText}>{t("home.recordNote")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickBtn}
@@ -360,7 +419,7 @@ export default function HomeScreen() {
                   accessibilityLabel="Schedule appointment"
                 >
                   <CalendarPlus size={20} color={Colors.accent} />
-                  <Text style={styles.quickBtnText}>Schedule Visit</Text>
+                  <Text style={styles.quickBtnText}>{t("home.scheduleVisit")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickBtn}
@@ -370,38 +429,70 @@ export default function HomeScreen() {
                   accessibilityLabel="Scan document"
                 >
                   <ScanLine size={20} color={Colors.accent} />
-                  <Text style={styles.quickBtnText}>Scan Doc</Text>
+                  <Text style={styles.quickBtnText}>{t("home.scanDoc")}</Text>
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={styles.emergencyBtn}
+                onPress={() => router.push("/emergency")}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t("emergency.title")}
+              >
+                <ShieldAlert size={20} color="#fff" />
+                <Text style={styles.emergencyBtnText}>{t("emergency.title")}</Text>
+              </TouchableOpacity>
             </>
           ) : (
             <View style={styles.chatMessages}>
-              {messages.map((msg, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.chatBubble,
-                    msg.role === "user"
-                      ? styles.chatBubbleUser
-                      : styles.chatBubbleAssistant,
-                  ]}
-                >
-                  <Text style={styles.chatLabel}>
-                    {msg.role === "user" ? "You" : "WellSaid"}
-                  </Text>
-                  <Text
+              <TouchableOpacity
+                style={styles.newChatBtn}
+                onPress={() => { setMessages([]); setTypingIndex(null); }}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="New conversation"
+              >
+                <X size={16} color={Colors.muted} />
+                <Text style={styles.newChatText}>{t("common.newChat")}</Text>
+              </TouchableOpacity>
+              {messages.map((msg, i) => {
+                const isUser = msg.role === "user";
+                const isTyping = i === typingIndex;
+
+                return (
+                  <View
+                    key={i}
                     style={[
-                      styles.chatText,
-                      msg.role === "user" && { color: "#fff" },
+                      styles.chatBubble,
+                      isUser ? styles.chatBubbleUser : styles.chatBubbleAssistant,
                     ]}
                   >
-                    {msg.content}
-                  </Text>
-                </View>
-              ))}
+                    <Text style={styles.chatLabel}>
+                      {isUser ? t("common.you") : "WellSaid"}
+                    </Text>
+                    {!isUser && isTyping ? (
+                      <TypewriterText
+                        text={msg.content}
+                        style={styles.chatText}
+                        onFinish={() => setTypingIndex(null)}
+                      />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.chatText,
+                          isUser && { color: "#fff" },
+                        ]}
+                      >
+                        {msg.content}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
               {chatLoading && (
                 <View style={[styles.chatBubble, styles.chatBubbleAssistant]}>
-                  <ActivityIndicator size="small" color={Colors.muted} />
+                  <TypingIndicator label={t("home.thinking")} />
                 </View>
               )}
             </View>
@@ -429,7 +520,7 @@ export default function HomeScreen() {
             style={styles.chatInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ask WellSaid anything..."
+            placeholder={t("home.askPlaceholder")}
             placeholderTextColor={Colors.muted}
             returnKeyType="send"
             onSubmitEditing={handleSend}
@@ -460,6 +551,19 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  homeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   loadingContainer: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -586,6 +690,24 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_500Medium",
     color: Colors.foreground,
   },
+  newChatBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    marginBottom: 4,
+  },
+  newChatText: {
+    fontSize: 13,
+    fontFamily: "DMSans_500Medium",
+    color: Colors.muted,
+  },
   chatMessages: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
   chatBubble: { borderRadius: 18, padding: 14 },
   chatBubbleUser: {
@@ -610,6 +732,12 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_400Regular",
     color: Colors.foreground,
     lineHeight: 22,
+  },
+  typingText: {
+    fontSize: 14,
+    fontFamily: "DMSans_500Medium",
+    color: Colors.muted,
+    letterSpacing: 0.2,
   },
   promptSuggestion: {
     flexDirection: "row",
@@ -661,4 +789,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sendBtnDisabled: { opacity: 0.3 },
+  emergencyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: "#c0392b",
+  },
+  emergencyBtnText: {
+    fontSize: 15,
+    fontFamily: "DMSans_600SemiBold",
+    color: "#fff",
+  },
 });

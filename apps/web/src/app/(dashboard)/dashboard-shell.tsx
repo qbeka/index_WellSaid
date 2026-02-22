@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { usePathname } from "next/navigation";
@@ -18,10 +18,23 @@ const ROUTE_TITLE_KEYS: Record<string, string> = {
   "/translate": "nav.translate",
 };
 
-export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
+type DashboardShellProps = {
+  children: React.ReactNode;
+  highLegibility?: boolean;
+};
+
+export const DashboardShell = ({ children, highLegibility = false }: DashboardShellProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (highLegibility) {
+      document.documentElement.classList.add("high-legibility");
+    } else {
+      document.documentElement.classList.remove("high-legibility");
+    }
+  }, [highLegibility]);
 
   const matchedRoute = Object.keys(ROUTE_TITLE_KEYS).find(
     (route) => pathname === route || pathname.startsWith(route + "/")
