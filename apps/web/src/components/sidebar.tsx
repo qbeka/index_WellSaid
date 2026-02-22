@@ -286,8 +286,8 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5">
-                    <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center justify-between gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5">
+                    <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-[12px] font-medium text-[var(--color-foreground)]">
                         {t("settings.highLegibility")}
                       </span>
@@ -298,17 +298,19 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
                     <button
                       type="button"
                       onClick={() => setHighLegibility(!highLegibility)}
-                      className={`relative h-6 w-11 rounded-full transition-colors ${
-                        highLegibility ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
-                      }`}
+                      className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-[background-color] duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2"
+                      style={{
+                        backgroundColor: highLegibility ? "var(--color-accent)" : "var(--color-border)",
+                      }}
                       aria-label={t("settings.highLegibility")}
                       role="switch"
                       aria-checked={highLegibility}
                     >
                       <span
-                        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                          highLegibility ? "translate-x-5" : "translate-x-0"
-                        }`}
+                        className="absolute left-[2px] top-1/2 block h-5 w-5 rounded-full bg-white shadow-sm transition-[transform] duration-200 ease-in-out"
+                        style={{
+                          transform: highLegibility ? "translate(20px, -50%)" : "translate(0, -50%)",
+                        }}
                       />
                     </button>
                   </div>
