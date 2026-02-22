@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "WellSaid",
   description:
     "A healthcare copilot ensuring language and memory are never barriers to quality care.",
+  icons: {
+    icon: [{ url: "/icon", type: "image/png", sizes: "192x192" }],
+  },
 };
 
 const RootLayout = ({
