@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 10,
     alignItems: "center",
   },
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 2,
   },
-  label: { fontSize: 13, fontFamily: "DMSans_500Medium", color: Colors.muted },
+  label: { fontSize: 12, fontFamily: "DMSans_500Medium", color: Colors.muted },
   labelActive: { color: Colors.foreground, fontFamily: "DMSans_600SemiBold" },
 });

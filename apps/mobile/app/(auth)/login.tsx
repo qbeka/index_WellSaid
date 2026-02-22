@@ -202,18 +202,18 @@ const styles = StyleSheet.create({
   },
   brandingArea: {
     alignItems: "center",
-    gap: 12,
-    marginBottom: 40,
+    gap: 16,
+    marginBottom: 48,
   },
   appName: {
-    fontSize: 30,
+    fontSize: 34,
     fontFamily: "DancingScript_700Bold",
     color: Colors.accent,
     letterSpacing: -0.5,
   },
   textGroup: {
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
   headline: {
     fontSize: 15,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   googleBtn: {
-    height: 48,
+    height: 52,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: Colors.border,

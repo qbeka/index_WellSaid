@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Square,
   Loader2,
+  ArrowRight,
 } from "lucide-react-native";
 import { Colors } from "../../lib/colors";
 import { supabase } from "../../lib/supabase";
@@ -40,6 +41,13 @@ type Appointment = {
   status: string;
 };
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const QUICK_PROMPTS = [
+  "Summarize my overall health.",
+  "What action items do I have?",
+  "What are my upcoming appointments?",
+  "Summarize my recent documents.",
+];
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -76,6 +84,7 @@ export default function HomeScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [promptIndex, setPromptIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
 
   const fetchData = useCallback(async () => {
@@ -145,10 +154,45 @@ export default function HomeScreen() {
     fetchData().finally(() => setLoading(false));
   }, [fetchData]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPromptIndex((prev) => (prev + 1) % QUICK_PROMPTS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    if (chatLoading) return;
+    setInputText("");
+    const userMsg: ChatMessage = { role: "user", content: prompt };
+    setMessages((prev) => [...prev, userMsg]);
+    setChatLoading(true);
+
+    apiPost<{ text: string }>("/api/chat", {
+      messages: [...messages, userMsg].map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+    })
+      .then((res) => {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: res.text || "Sorry, I could not respond." },
+        ]);
+      })
+      .catch(() => {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Something went wrong. Please try again." },
+        ]);
+      })
+      .finally(() => setChatLoading(false));
   };
 
   const handleSend = async () => {
@@ -289,7 +333,7 @@ export default function HomeScreen() {
                       <View style={styles.actionContent}>
                         <Text style={styles.actionText}>{item.text}</Text>
                         <Text style={styles.actionMeta}>
-                          {item.source} -- {formatActionDate(item.date)}
+                          {item.source} · {formatActionDate(item.date)}
                         </Text>
                       </View>
                     </View>
@@ -364,6 +408,22 @@ export default function HomeScreen() {
           )}
         </ScrollView>
 
+        {messages.length === 0 && (
+          <TouchableOpacity
+            style={styles.promptSuggestion}
+            onPress={() => handlePromptClick(QUICK_PROMPTS[promptIndex])}
+            disabled={chatLoading}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={QUICK_PROMPTS[promptIndex]}
+          >
+            <Text style={styles.promptSuggestionText} numberOfLines={1}>
+              {QUICK_PROMPTS[promptIndex]}
+            </Text>
+            <ArrowRight size={14} color={Colors.muted} />
+          </TouchableOpacity>
+        )}
+
         <View style={styles.chatBar}>
           <TextInput
             style={styles.chatInput}
@@ -408,14 +468,15 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
-  greetingSection: { alignItems: "center", paddingTop: 24, paddingBottom: 16, gap: 4 },
+  greetingSection: { alignItems: "center", paddingTop: 20, paddingBottom: 20, gap: 6 },
   greeting: {
-    fontSize: 22,
-    fontFamily: "DMSans_600SemiBold",
+    fontSize: 24,
+    fontFamily: "DMSans_700Bold",
     color: Colors.foreground,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "DMSans_400Regular",
     color: Colors.muted,
   },
@@ -428,7 +489,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderStyle: "dashed",
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
@@ -442,11 +503,11 @@ const styles = StyleSheet.create({
   appointmentCard: {
     width: 160,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    gap: 4,
+    gap: 6,
   },
   appointmentTitle: {
     fontSize: 14,
@@ -486,7 +547,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
@@ -507,14 +568,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     marginHorizontal: 16,
+    marginTop: 4,
     marginBottom: 16,
   },
   quickBtn: {
     flex: 1,
     alignItems: "center",
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: 16,
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
@@ -524,22 +586,24 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_500Medium",
     color: Colors.foreground,
   },
-  chatMessages: { paddingHorizontal: 16, paddingTop: 8, gap: 10 },
-  chatBubble: { borderRadius: 16, padding: 14 },
+  chatMessages: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
+  chatBubble: { borderRadius: 18, padding: 14 },
   chatBubbleUser: {
     backgroundColor: Colors.accent,
-    marginLeft: 40,
+    marginLeft: 48,
   },
   chatBubbleAssistant: {
     backgroundColor: Colors.backgroundMuted,
-    marginRight: 40,
+    marginRight: 48,
   },
   chatLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "DMSans_500Medium",
     color: Colors.muted,
     marginBottom: 4,
-    opacity: 0.7,
+    opacity: 0.6,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
   },
   chatText: {
     fontSize: 15,
@@ -547,10 +611,29 @@ const styles = StyleSheet.create({
     color: Colors.foreground,
     lineHeight: 22,
   },
+  promptSuggestion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.backgroundMuted,
+    paddingHorizontal: 16,
+  },
+  promptSuggestionText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "DMSans_400Regular",
+    color: Colors.foreground,
+  },
   chatBar: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderTopWidth: 1,
@@ -559,8 +642,8 @@ const styles = StyleSheet.create({
   },
   chatInput: {
     flex: 1,
-    height: 48,
-    borderRadius: 16,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.background,
@@ -570,9 +653,9 @@ const styles = StyleSheet.create({
     color: Colors.foreground,
   },
   sendBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.accent,
     justifyContent: "center",
     alignItems: "center",

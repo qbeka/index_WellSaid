@@ -20,13 +20,14 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.muted,
         tabBarLabelStyle: {
           fontFamily: "DMSans_500Medium",
-          fontSize: 11,
+          fontSize: 10,
+          letterSpacing: 0.1,
         },
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
           borderTopWidth: 1,
-          paddingTop: 6,
+          paddingTop: 8,
           height: Platform.OS === "ios" ? 88 : 64,
         },
       }}

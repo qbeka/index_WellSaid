@@ -293,7 +293,7 @@ export default function HealthScreen() {
       <View style={styles.cardBody}>
         <Text style={styles.actionText}>{item.text}</Text>
         <Text style={styles.metaText}>
-          {item.source} -- {formatCreatedDate(item.date)}
+          {item.source} · {formatCreatedDate(item.date)}
         </Text>
       </View>
     </View>
@@ -426,18 +426,18 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_700Bold",
     color: Colors.foreground,
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  segmentWrapper: { paddingHorizontal: 16, paddingVertical: 8 },
-  listContent: { padding: 16, gap: 8, paddingBottom: 100 },
+  segmentWrapper: { paddingHorizontal: 16, paddingVertical: 10 },
+  listContent: { padding: 16, gap: 10, paddingBottom: 100 },
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     padding: 16,
     borderRadius: 16,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderStyle: "dashed",
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     color: Colors.foreground,
     lineHeight: 20,
   },
-  emptyState: { alignItems: "center", paddingTop: 60 },
+  emptyState: { alignItems: "center", paddingTop: 80, gap: 6 },
   emptyText: {
     fontSize: 15,
     fontFamily: "DMSans_400Regular",
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 100,
+    bottom: 20,
     right: 20,
     width: 56,
     height: 56,
