@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Image,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
@@ -20,6 +23,9 @@ const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!;
 
 const reversedClientId = IOS_CLIENT_ID.split(".").reverse().join(".");
 const redirectUri = `${reversedClientId}:/oauthredirect`;
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SPHERE_SIZE = SCREEN_WIDTH * 0.85;
 
 const GoogleIcon = () => (
   <Svg width={18} height={18} viewBox="0 0 18 18">
@@ -48,22 +54,63 @@ export default function LoginScreen() {
   const [nonce, setNonce] = useState("");
   const [hashedNonce, setHashedNonce] = useState("");
 
+  const sphereScale = useRef(new Animated.Value(0.85)).current;
+  const sphereOpacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(30)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(sphereOpacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(sphereScale, {
+          toValue: 1,
+          tension: 20,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(contentOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(contentTranslateY, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    Animated.loop(
+      Animated.timing(floatAnim, {
+        toValue: 1,
+        duration: 20000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
   useEffect(() => {
     const generateNonce = async () => {
       const raw = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         String(Date.now()) + Math.random()
       );
-
       const hashed = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         raw
       );
-
       setNonce(raw);
       setHashedNonce(hashed);
     };
-
     generateNonce();
   }, []);
 
@@ -118,7 +165,8 @@ export default function LoginScreen() {
       });
 
       const tokens = await tokenRes.json();
-      if (!tokens.id_token) throw new Error(tokens.error_description || "Token exchange failed.");
+      if (!tokens.id_token)
+        throw new Error(tokens.error_description || "Token exchange failed.");
 
       const { error: signInError } = await supabase.auth.signInWithIdToken({
         provider: "google",
@@ -136,26 +184,71 @@ export default function LoginScreen() {
     }
   };
 
+  const floatRotation = floatAnim.interpolate({
+    inputRange: [0, 0.33, 0.66, 1],
+    outputRange: ["0deg", "4deg", "-3deg", "0deg"],
+  });
+
+  const floatScale = floatAnim.interpolate({
+    inputRange: [0, 0.33, 0.66, 1],
+    outputRange: [1, 1.03, 0.92, 1],
+  });
+
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.center}>
-          <View style={styles.brandingArea}>
+        <View style={styles.sphereArea}>
+          <Animated.View
+            style={[
+              styles.sphereContainer,
+              {
+                opacity: sphereOpacity,
+                transform: [
+                  { scale: Animated.multiply(sphereScale, floatScale) },
+                  { rotate: floatRotation },
+                ],
+              },
+            ]}
+          >
+            <Image
+              source={require("../../assets/sphere.png")}
+              style={styles.sphere}
+              resizeMode="contain"
+            />
+          </Animated.View>
+
+          <Animated.View
+            style={[styles.logoOverlay, { opacity: sphereOpacity }]}
+            pointerEvents="none"
+          >
+            <Image
+              source={require("../../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </View>
+
+        <Animated.View
+          style={[
+            styles.bottomArea,
+            {
+              opacity: contentOpacity,
+              transform: [{ translateY: contentTranslateY }],
+            },
+          ]}
+        >
+          <View style={styles.branding}>
+            <Text style={styles.welcomeText}>Welcome to</Text>
             <Text style={styles.appName}>WellSaid</Text>
-            <View style={styles.textGroup}>
-              <Text style={styles.headline}>
-                Making healthcare easier for all
-              </Text>
-              <Text style={styles.subtext}>
-                Sign into your account below
-              </Text>
-            </View>
           </View>
 
           <View style={styles.actions}>
             {error ? (
               <Text style={styles.errorText}>{error}</Text>
             ) : null}
+
+            <Text style={styles.subtext}>Sign in to continue</Text>
 
             <TouchableOpacity
               style={[
@@ -180,7 +273,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </SafeAreaView>
     </View>
   );
@@ -189,46 +282,65 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "#f0ece6",
   },
   container: {
     flex: 1,
   },
-  center: {
+  sphereArea: {
     flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
   },
-  brandingArea: {
+  sphereContainer: {
+    width: SPHERE_SIZE,
+    height: SPHERE_SIZE,
+  },
+  sphere: {
+    width: "100%",
+    height: "100%",
+  },
+  logoOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
-    gap: 16,
-    marginBottom: 48,
+    justifyContent: "center",
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  bottomArea: {
+    paddingHorizontal: 32,
+    paddingBottom: 40,
+    gap: 24,
+  },
+  branding: {
+    alignItems: "center",
+    gap: 2,
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontFamily: "DMSans_400Regular",
+    color: Colors.foreground,
+    opacity: 0.6,
+    letterSpacing: 1,
   },
   appName: {
-    fontSize: 34,
-    fontFamily: "DancingScript_700Bold",
-    color: Colors.accent,
-    letterSpacing: -0.5,
-  },
-  textGroup: {
-    alignItems: "center",
-    gap: 6,
-  },
-  headline: {
-    fontSize: 15,
-    fontFamily: "DMSans_500Medium",
+    fontSize: 36,
+    fontFamily: "DMSans_700Bold",
     color: Colors.foreground,
+    letterSpacing: -0.5,
   },
   subtext: {
     fontSize: 14,
     fontFamily: "DMSans_400Regular",
     color: Colors.muted,
+    textAlign: "center",
   },
   actions: {
     width: "100%",
-    maxWidth: 400,
-    gap: 16,
+    gap: 12,
+    alignItems: "center",
   },
   errorText: {
     fontSize: 14,
@@ -238,6 +350,7 @@ const styles = StyleSheet.create({
   },
   googleBtn: {
     height: 52,
+    width: "100%",
     borderRadius: 999,
     borderWidth: 1,
     borderColor: Colors.border,

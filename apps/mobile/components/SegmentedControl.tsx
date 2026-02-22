@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Colors } from "../lib/colors";
 
 interface Props {
@@ -10,32 +10,47 @@ interface Props {
 export default function SegmentedControl({ tabs, active, onChange }: Props) {
   return (
     <View style={styles.container}>
-      {tabs.map((label, i) => (
-        <TouchableOpacity
-          key={label}
-          style={[styles.tab, active === i && styles.tabActive]}
-          onPress={() => onChange(i)}
-          activeOpacity={0.7}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: active === i }}
-        >
-          <Text style={[styles.label, active === i && styles.labelActive]}>{label}</Text>
-        </TouchableOpacity>
-      ))}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+      >
+        {tabs.map((label, i) => (
+          <TouchableOpacity
+            key={label}
+            style={[styles.tab, active === i && styles.tabActive]}
+            onPress={() => onChange(i)}
+            activeOpacity={0.7}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active === i }}
+          >
+            <Text
+              style={[styles.label, active === i && styles.labelActive]}
+              numberOfLines={1}
+            >
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
     backgroundColor: Colors.backgroundMuted,
     borderRadius: 12,
     padding: 3,
   },
+  scrollContent: {
+    flexDirection: "row",
+    gap: 2,
+  },
   tab: {
-    flex: 1,
     paddingVertical: 9,
+    paddingHorizontal: 14,
     borderRadius: 10,
     alignItems: "center",
   },

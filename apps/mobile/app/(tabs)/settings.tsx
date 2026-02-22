@@ -38,32 +38,35 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const fullName =
-        user.user_metadata?.full_name || user.user_metadata?.name || "";
-      const avatar =
-        user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-      setName(fullName);
-      setAvatarUrl(avatar);
+        const fullName =
+          user.user_metadata?.full_name || user.user_metadata?.name || "";
+        const avatar =
+          user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+        setName(fullName);
+        setAvatarUrl(avatar);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("preferred_language, hospital_phone, phone_extension, high_legibility, care_circle_phone")
-        .eq("id", user.id)
-        .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("preferred_language, hospital_phone, phone_extension, high_legibility, care_circle_phone")
+          .eq("id", user.id)
+          .maybeSingle();
 
-      if (profile) {
-        setLanguage(profile.preferred_language || "en");
-        setHospitalPhone(profile.hospital_phone || "");
-        setPhoneExtension(profile.phone_extension || "");
-        setHighLegibility(profile.high_legibility || false);
-        setCareCirclePhone(profile.care_circle_phone || "");
+        if (profile) {
+          setLanguage(profile.preferred_language || "en");
+          setHospitalPhone(profile.hospital_phone || "");
+          setPhoneExtension(profile.phone_extension || "");
+          setHighLegibility(profile.high_legibility || false);
+          setCareCirclePhone(profile.care_circle_phone || "");
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchProfile();
   }, []);
@@ -77,17 +80,18 @@ export default function SettingsScreen() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: user.id,
           preferred_language: language,
           hospital_phone: hospitalPhone.trim() || null,
           phone_extension: phoneExtension.trim() || null,
           high_legibility: highLegibility,
           care_circle_phone: careCirclePhone.trim() || null,
           updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+        });
+      if (error) throw error;
 
       setLang(language);
       setGlobalHighLegibility(highLegibility);

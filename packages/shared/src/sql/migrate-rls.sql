@@ -5,6 +5,32 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone_extension text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS care_circle_phone text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS high_legibility boolean NOT NULL DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender_identity text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pronouns text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS onboarded boolean NOT NULL DEFAULT false;
+
+-- Ensure profile rows exist for users created before trigger/policies were set
+INSERT INTO public.profiles (id)
+SELECT u.id
+FROM auth.users u
+LEFT JOIN public.profiles p ON p.id = u.id
+WHERE p.id IS NULL;
+
+-- Ensure auto-create profile trigger exists
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id)
+  VALUES (new.id)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- Care Circle Alerts (for Emergency Mode)
 CREATE TABLE IF NOT EXISTS public.care_circle_alerts (
@@ -130,6 +156,11 @@ CREATE POLICY "Users can delete own sessions"
 
 -- Profiles: add WITH CHECK to update policy
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+
+CREATE POLICY "Users can insert own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   View,
   TextInput,
@@ -6,6 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+  InputAccessoryView,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +19,8 @@ import GradientBackground from "../../components/GradientBackground";
 import LanguageSelect from "../../components/LanguageSelect";
 import { supabase } from "../../lib/supabase";
 import { useI18n } from "../../lib/i18n";
+
+const PHONE_ACCESSORY_ID = "phone-keyboard-done";
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -28,6 +35,10 @@ export default function OnboardingScreen() {
   const [pronouns, setPronouns] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const lastNameRef = useRef<TextInput>(null);
+  const pronounsRef = useRef<TextInput>(null);
+  const extensionRef = useRef<TextInput>(null);
+
   const isValid =
     step === 0
       ? firstName.trim().length > 0
@@ -39,6 +50,7 @@ export default function OnboardingScreen() {
   };
 
   const handleNext = async () => {
+    Keyboard.dismiss();
     if (step < 3) {
       setStep(step + 1);
       return;
@@ -76,121 +88,158 @@ export default function OnboardingScreen() {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.progress}>
-          {[0, 1, 2, 3].map((i) => (
-            <View
-              key={i}
-              style={[styles.dot, i <= step && styles.dotActive]}
-            />
-          ))}
-        </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <SafeAreaView style={styles.container}>
+            <View style={styles.progress}>
+              {[0, 1, 2, 3].map((i) => (
+                <View
+                  key={i}
+                  style={[styles.dot, i <= step && styles.dotActive]}
+                />
+              ))}
+            </View>
 
-        <View style={styles.content}>
-          {step === 0 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t("onboarding.nameTitle")}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("onboarding.firstName")}
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("onboarding.lastName")}
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-              />
+            <View style={styles.content}>
+              {step === 0 && (
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>{t("onboarding.nameTitle")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t("onboarding.firstName")}
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    onSubmitEditing={() => lastNameRef.current?.focus()}
+                    blurOnSubmit={false}
+                  />
+                  <TextInput
+                    ref={lastNameRef}
+                    style={styles.input}
+                    placeholder={t("onboarding.lastName")}
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    autoCapitalize="words"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                </View>
+              )}
+              {step === 1 && (
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>{t("onboarding.langTitle")}</Text>
+                  <Text style={styles.stepSub}>
+                    {t("onboarding.langSubtitle")}
+                  </Text>
+                  <LanguageSelect
+                    selectedCode={language}
+                    onSelect={handleLanguageSelect}
+                    light
+                  />
+                </View>
+              )}
+              {step === 2 && (
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>{t("onboarding.genderTitle")}</Text>
+                  <Text style={styles.stepSub}>{t("onboarding.genderSubtitle")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t("onboarding.genderPlaceholder")}
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={genderIdentity}
+                    onChangeText={setGenderIdentity}
+                    returnKeyType="next"
+                    onSubmitEditing={() => pronounsRef.current?.focus()}
+                    blurOnSubmit={false}
+                  />
+                  <TextInput
+                    ref={pronounsRef}
+                    style={styles.input}
+                    placeholder={t("onboarding.pronounsPlaceholder")}
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={pronouns}
+                    onChangeText={setPronouns}
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                </View>
+              )}
+              {step === 3 && (
+                <View style={styles.stepContent}>
+                  <Text style={styles.stepTitle}>{t("onboarding.phoneTitle")}</Text>
+                  <Text style={styles.stepSub}>{t("onboarding.phoneSubtitle")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="(555) 555-5555"
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={hospitalPhone}
+                    onChangeText={setHospitalPhone}
+                    keyboardType="phone-pad"
+                    inputAccessoryViewID={Platform.OS === "ios" ? PHONE_ACCESSORY_ID : undefined}
+                  />
+                  <TextInput
+                    ref={extensionRef}
+                    style={styles.input}
+                    placeholder="Ext. (optional)"
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    value={phoneExtension}
+                    onChangeText={setPhoneExtension}
+                    keyboardType="number-pad"
+                    inputAccessoryViewID={Platform.OS === "ios" ? PHONE_ACCESSORY_ID : undefined}
+                  />
+                </View>
+              )}
             </View>
-          )}
-          {step === 1 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t("onboarding.langTitle")}</Text>
-              <Text style={styles.stepSub}>
-                {t("onboarding.langSubtitle")}
-              </Text>
-              <LanguageSelect
-                selectedCode={language}
-                onSelect={handleLanguageSelect}
-                light
-              />
-            </View>
-          )}
-          {step === 2 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t("onboarding.genderTitle")}</Text>
-              <Text style={styles.stepSub}>{t("onboarding.genderSubtitle")}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("onboarding.genderPlaceholder")}
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={genderIdentity}
-                onChangeText={setGenderIdentity}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder={t("onboarding.pronounsPlaceholder")}
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={pronouns}
-                onChangeText={setPronouns}
-              />
-            </View>
-          )}
-          {step === 3 && (
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t("onboarding.phoneTitle")}</Text>
-              <Text style={styles.stepSub}>{t("onboarding.phoneSubtitle")}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="(555) 555-5555"
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={hospitalPhone}
-                onChangeText={setHospitalPhone}
-                keyboardType="phone-pad"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Ext. (optional)"
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                value={phoneExtension}
-                onChangeText={setPhoneExtension}
-                keyboardType="number-pad"
-              />
-            </View>
-          )}
-        </View>
 
-        <View style={styles.bottom}>
-          {step > 0 && (
+            <View style={styles.bottom}>
+              {step > 0 && (
+                <TouchableOpacity
+                  onPress={() => setStep(step - 1)}
+                  style={styles.backBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.backText}>{t("common.back")}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.nextBtn, !isValid && styles.nextBtnDisabled]}
+                onPress={handleNext}
+                disabled={!isValid || loading}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#1a2b3c" />
+                ) : (
+                  <Text style={styles.nextText}>
+                    {step === 3 ? t("common.getStarted") : t("common.next")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+
+      {Platform.OS === "ios" && (
+        <InputAccessoryView nativeID={PHONE_ACCESSORY_ID}>
+          <View style={styles.accessoryBar}>
+            <View style={{ flex: 1 }} />
             <TouchableOpacity
-              onPress={() => setStep(step - 1)}
-              style={styles.backBtn}
+              onPress={Keyboard.dismiss}
+              style={styles.doneButton}
               activeOpacity={0.7}
             >
-              <Text style={styles.backText}>{t("common.back")}</Text>
+              <Text style={styles.doneText}>Done</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.nextBtn, !isValid && styles.nextBtnDisabled]}
-            onPress={handleNext}
-            disabled={!isValid || loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#1a2b3c" />
-            ) : (
-              <Text style={styles.nextText}>
-                {step === 3 ? t("common.getStarted") : t("common.next")}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+          </View>
+        </InputAccessoryView>
+      )}
     </GradientBackground>
   );
 }
@@ -265,5 +314,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "DMSans_600SemiBold",
     color: "#1a2b3c",
+  },
+  accessoryBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d1d5db",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#b0b0b0",
+  },
+  doneButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  doneText: {
+    fontSize: 16,
+    fontFamily: "DMSans_600SemiBold",
+    color: "#007AFF",
   },
 });
