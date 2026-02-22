@@ -57,7 +57,7 @@ const LoginPage = () => {
       `}</style>
 
       <div
-        className="fixed inset-0 flex overflow-hidden"
+        className="fixed inset-0 flex flex-col md:flex-row overflow-hidden"
         style={{
           backgroundColor: "#f0ece6",
           fontFamily: "'Montserrat', sans-serif",
@@ -65,7 +65,7 @@ const LoginPage = () => {
       >
         <div
           className={`relative flex items-center justify-center transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]
-          ${shifted ? "w-[60%]" : "w-full"}
+          ${shifted ? "w-full md:w-[60%]" : "w-full"}
           ${mounted ? "opacity-100" : "opacity-0"}`}
           style={{ transitionProperty: "width, opacity" }}
         >
@@ -79,29 +79,30 @@ const LoginPage = () => {
               alt="Background Gradient Sphere Image"
               width={1000}
               height={1000}
-              className="orb-animate"
+              className="orb-animate w-[min(88vw,520px)] h-auto md:w-[1000px]"
             />
           </div>
 
-          <div className="absolute z-10 flex items-center gap-6 text-white pointer-events-none select-none">
+          <div className="absolute z-10 flex items-center gap-3 md:gap-6 text-white pointer-events-none select-none">
             <Image 
               src={logoImage} 
               alt="WellSaid Logo" 
               width={150} 
               height={150} 
+              className="w-[86px] h-[86px] md:w-[150px] md:h-[150px]"
               priority 
               />
 
             <div className="flex flex-col leading-none">
               <span
-                className="text-[2rem] font-light tracking-wider opacity-90 mb-2 drop-shadow-sm"
+                className="text-[1.2rem] md:text-[2rem] font-light tracking-wider opacity-90 mb-1 md:mb-2 drop-shadow-sm"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 Welcome to
               </span>
 
               <span
-                className="text-[4rem] tracking-tight drop-shadow-sm"
+                className="text-[2.15rem] md:text-[4rem] tracking-tight drop-shadow-sm"
                 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600 }}
               >
                 WellSaid
@@ -111,13 +112,14 @@ const LoginPage = () => {
         </div>
 
         <div
-          className={`flex flex-col items-left justify-center transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]
-          ${shifted ? "w-[40%] opacity-100" : "w-0 opacity-0"}`}
+          className={`flex flex-col items-center md:items-start justify-start md:justify-center transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]
+          w-full px-6 pb-10 md:px-0 md:pb-0
+          ${shifted ? "md:w-[40%] md:opacity-100" : "md:w-0 md:opacity-0"}
+          ${showButton ? "opacity-100" : "opacity-0 translate-y-4 md:translate-y-0"}`}
           style={{ transitionProperty: "width, opacity", overflow: "hidden" }}
         >
           <div
-            className={`flex flex-col items-center w-72 transition-all duration-[500ms] ease-[cubic-bezier(0.22,1,0.36,1)]
-            ${showButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+            className="flex flex-col items-center w-full max-w-[22rem] transition-all duration-[500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
           >
             <p
               className="text-[1.1rem] text-[var(--color-foreground)] opacity-60 mb-2"
