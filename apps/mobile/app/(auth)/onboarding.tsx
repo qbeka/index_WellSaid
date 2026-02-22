@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -48,21 +49,26 @@ export default function OnboardingScreen() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      await supabase.from("profiles").upsert({
+      const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         preferred_language: language,
-        hospital_phone: hospitalPhone.trim(),
-        phone_extension: phoneExtension.trim(),
+        hospital_phone: hospitalPhone.trim() || null,
+        phone_extension: phoneExtension.trim() || null,
         gender_identity: genderIdentity.trim() || null,
         pronouns: pronouns.trim() || null,
         onboarded: true,
         updated_at: new Date().toISOString(),
       });
+      if (error) throw error;
       router.replace("/(tabs)");
     } catch (e) {
       console.error("Onboarding error:", e);
+      Alert.alert(
+        t("common.error"),
+        "Could not save your profile. Please try again."
+      );
     } finally {
       setLoading(false);
     }
