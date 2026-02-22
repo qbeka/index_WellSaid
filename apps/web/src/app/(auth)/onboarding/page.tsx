@@ -29,8 +29,8 @@ const OnboardingPage = () => {
     [lang]
   );
 
-  const step1Valid = firstName.trim().length > 0 && lastName.trim().length > 0;
-  const step2Valid = preferredLanguage.length > 0;
+  const step1Valid = preferredLanguage.length > 0;
+  const step2Valid = firstName.trim().length > 0 && lastName.trim().length > 0; 
   const step3Valid = true;
   const step4Valid = true;
 
@@ -84,22 +84,22 @@ const OnboardingPage = () => {
     (step === 4 && step4Valid);
 
   const stepIcon = {
-    1: <User size={32} className="text-[var(--color-accent)]" />,
-    2: <Globe size={32} className="text-[var(--color-accent)]" />,
-    3: <Users size={32} className="text-[var(--color-accent)]" />,
-    4: <Phone size={32} className="text-[var(--color-accent)]" />,
+    1: <Globe size={50} className="text-[var(--color-white)]" />,
+    2: <User size={50} className="text-[var(--color-white)]" />,
+    3: <Users size={50} className="text-[var(--color-white)]" />,
+    4: <Phone size={50} className="text-[var(--color-white)]" />,
   };
 
   const stepTitle = {
-    1: t("onboarding.nameTitle"),
-    2: t("onboarding.langTitle"),
+    1: t("onboarding.langTitle"),
+    2: t("onboarding.nameTitle"),
     3: t("onboarding.genderTitle"),
     4: t("onboarding.phoneTitle"),
   };
 
   const stepSubtitle = {
-    1: t("onboarding.nameSubtitle"),
-    2: t("onboarding.langSubtitle"),
+    1: t("onboarding.langSubtitle"),
+    2: t("onboarding.nameSubtitle"),
     3: t("onboarding.genderSubtitle"),
     4: t("onboarding.phoneSubtitle"),
   };
@@ -166,16 +166,21 @@ const OnboardingPage = () => {
            </div>
  
            <div className="flex flex-col items-center gap-2 text-center">
-             <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow font-montserrat">
-               {stepTitle[step]}
+              <h2 className="text-[2rem] font-bold tracking-tight text-white drop-shadow font-montserrat">
+                {stepIcon[step]}
+             </h2>
+
+             <h1 className="text-[2rem] font-bold tracking-tight text-white drop-shadow font-montserrat">
+                {stepTitle[step]}
              </h1>
-             <p className="text-sm text-white/70 font-montserrat">
+         
+             <p className="text-[1rem] tracking-tight text-white drop-shadow font-montserrat">
                {stepSubtitle[step]}
              </p>
            </div>
  
            <div className="flex w-full flex-col gap-3">
-             {step === 1 && (
+             {step === 2 && (
                <>
                  <input
                    type="text"
@@ -199,7 +204,7 @@ const OnboardingPage = () => {
                </>
              )}
  
-             {step === 2 && (
+             {step === 1 && (
                <LanguageSelect
                  value={preferredLanguage}
                  onChange={setPreferredLanguage}
@@ -258,26 +263,27 @@ const OnboardingPage = () => {
               </p>
              )}
  
-             <button
-               type="button"
-               onClick={handleContinue}
-               disabled={!isCurrentStepValid || loading}
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={!isCurrentStepValid || loading}
               aria-label={step === 4 ? t("onboarding.getStarted") : t("onboarding.continue")}
               className="glass-button h-12 w-full rounded-full text-base font-montserrat"
             >
               {loading ? t("common.saving") : step === 4 ? t("onboarding.getStarted") : t("onboarding.continue")}
-             </button>
- 
-             {step > 1 && (
-               <button
-                 type="button"
-                 onClick={handleBack}
-                 aria-label={t("common.goBack")}
-                 className="h-12 w-full rounded-full text-base font-medium text-white/60 transition-colors hover:text-white/90"
-               >
-                 {t("common.back")}
+             
+            </button>
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  aria-label={t("common.goBack")}
+                  className="glass-button color-black h-12 w-full rounded-full text-base font-montserrat"
+                >  
+                  {t("common.back")}
                </button>
              )}
+
            </div>
          </div>
        </div>
