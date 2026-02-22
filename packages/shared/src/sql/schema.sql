@@ -9,6 +9,11 @@ create table if not exists public.profiles (
   preferred_language text not null default 'en',
   hospital_phone text,
   phone_extension text,
+  care_circle_phone text,
+  high_legibility boolean not null default false,
+  gender_identity text,
+  pronouns text,
+  onboarded boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

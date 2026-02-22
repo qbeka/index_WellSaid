@@ -5,6 +5,9 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone_extension text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS care_circle_phone text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS high_legibility boolean NOT NULL DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender_identity text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pronouns text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS onboarded boolean NOT NULL DEFAULT false;
 
 -- Care Circle Alerts (for Emergency Mode)
 CREATE TABLE IF NOT EXISTS public.care_circle_alerts (
