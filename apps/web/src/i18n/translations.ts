@@ -775,6 +775,13 @@ const fr: Dict = {
   "onboarding.getStarted": "Commencer",
   "onboarding.selectLanguage": "Selectionnez votre langue",
 
+  "onboarding.genderTitle": "Comment vous aimeriez-vous être appelé(e)?",
+  "onboarding.genderSubtitle": "Nous utiliserons cela pour utiliser un langage respectueux.",
+  "onboarding.genderIdentity": "Identité de genre",
+  "onboarding.pronouns": "Pronoms préférés",
+  "onboarding.genderPlaceholder": "e.g. Femme, Homme, Non-binaire",
+  "onboarding.pronounsPlaceholder": "e.g. elle/elle, il/lui, ils/eux",
+
   "home.welcomeBack": "Bon retour, {name}!",
   "home.welcomeBackGeneric": "Bon retour!",
   "home.summary": "Resume de votre sante et actions a faire",
@@ -1091,6 +1098,13 @@ const ko: Dict = {
   "onboarding.continue": "계속",
   "onboarding.getStarted": "시작하기",
   "onboarding.selectLanguage": "언어 선택",
+  
+  "onboarding.genderTitle": "어떻게 불리고 싶으신가요?",
+  "onboarding.genderSubtitle": "존중하는 언어를 사용하기 위해 이 정보를 사용합니다.",
+  "onboarding.genderIdentity": "성별 정체성",
+  "onboarding.pronouns": "선호하는 대명사",
+  "onboarding.genderPlaceholder": "예: 여성, 남성, 논바이너리",
+  "onboarding.pronounsPlaceholder": "예: 그녀/그녀, 그/그, 그들/그들",
 
   "home.welcomeBack": "다시 오신 것을 환영합니다, {name}님!",
   "home.welcomeBackGeneric": "다시 오신 것을 환영합니다!",
@@ -1464,11 +1478,18 @@ const tl: Dict = {
   "onboarding.getStarted": "Magsimula",
   "onboarding.selectLanguage": "Piliin ang iyong wika",
 
+  "onboarding.genderTitle": "Paano mo gustong tawagin ka?",
+  "onboarding.genderSubtitle": "Gagamitin namin ito upang gumamit ng magalang na wika.",
+  "onboarding.genderIdentity": "Pagkakakilanlang pangkasarian",
+  "onboarding.pronouns": "Mga gustong panghalip",
+  "onboarding.genderPlaceholder": "Hal. Babae, Lalaki, Non-binary",
+  "onboarding.pronounsPlaceholder": "Hal. he/him, she/her, they/them",
+
   "home.welcomeBack": "Maligayang pagbabalik, {name}!",
   "home.welcomeBackGeneric": "Maligayang pagbabalik!",
   "home.summary": "Narito ang buod ng iyong kalusugan at mga dapat gawin",
-  "home.appointment": "appointment",
-  "home.appointments": "mga appointment",
+  "home.appointment": "Appointment",
+  "home.appointments": "Mga appointment",
   "home.actionItems": "Mga Dapat Gawin",
   "home.noItems": "Walang paparating na appointment o gawain. Bumalik pagkatapos ng iyong susunod na pagbisita.",
   "home.you": "Ikaw",
