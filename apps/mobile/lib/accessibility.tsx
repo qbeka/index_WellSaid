@@ -6,7 +6,8 @@ type AccessibilityContextValue = {
   setHighLegibility: (val: boolean) => void;
   fontScale: number;
   lineHeightScale: number;
-  fontWeight: "400" | "500" | "600";
+  fontWeight: "400" | "500" | "600" | "700";
+  letterSpacing: number;
 };
 
 const AccessibilityContext = createContext<AccessibilityContextValue>({
@@ -15,6 +16,7 @@ const AccessibilityContext = createContext<AccessibilityContextValue>({
   fontScale: 1,
   lineHeightScale: 1,
   fontWeight: "400",
+  letterSpacing: 0,
 });
 
 export const AccessibilityProvider = ({ children }: { children: React.ReactNode }) => {
@@ -42,9 +44,10 @@ export const AccessibilityProvider = ({ children }: { children: React.ReactNode 
     () => ({
       highLegibility,
       setHighLegibility,
-      fontScale: highLegibility ? 1.15 : 1,
-      lineHeightScale: highLegibility ? 1.4 : 1,
-      fontWeight: (highLegibility ? "600" : "400") as "400" | "500" | "600",
+      fontScale: highLegibility ? 1.35 : 1,
+      lineHeightScale: highLegibility ? 1.7 : 1,
+      fontWeight: (highLegibility ? "700" : "400") as "400" | "500" | "600" | "700",
+      letterSpacing: highLegibility ? 0.5 : 0,
     }),
     [highLegibility, setHighLegibility]
   );

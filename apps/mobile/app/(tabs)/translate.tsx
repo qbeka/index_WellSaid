@@ -20,6 +20,7 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { callOpenAI } from "../../lib/openai";
 import { SUPPORTED_LANGUAGES } from "../../lib/translations";
@@ -46,7 +47,7 @@ const LanguagePicker = ({
     <View>
       <TouchableOpacity
         style={styles.pickerBtn}
-        onPress={() => setOpen(!open)}
+        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setOpen(!open); }}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Select ${label}`}
@@ -69,6 +70,7 @@ const LanguagePicker = ({
                   selected === lang.code && styles.pickerItemActive,
                 ]}
                 onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   onSelect(lang.code);
                   setOpen(false);
                 }}
@@ -114,6 +116,7 @@ export default function TranslateScreen() {
     const text = sourceText.trim();
     if (!text || loading) return;
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setTranslatedText("");
     setDetectedLang("");
@@ -141,6 +144,7 @@ export default function TranslateScreen() {
 
   const handleSpeak = (text: string) => {
     if (!text || speaking) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSpeaking(true);
     Speech.speak(text, {
       onDone: () => setSpeaking(false),
@@ -149,6 +153,7 @@ export default function TranslateScreen() {
   };
 
   const handleCopy = async (text: string) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await Clipboard.setStringAsync(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -156,6 +161,7 @@ export default function TranslateScreen() {
 
   const handleSwap = () => {
     if (!translatedText) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSourceText(translatedText);
     setTranslatedText("");
     setDetectedLang("");

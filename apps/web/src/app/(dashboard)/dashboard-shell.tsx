@@ -16,6 +16,7 @@ const ROUTE_TITLE_KEYS: Record<string, string> = {
   "/documents": "nav.documents",
   "/scan-documents": "nav.scanDocuments",
   "/translate": "nav.translate",
+  "/travel": "nav.travel",
 };
 
 type DashboardShellProps = {

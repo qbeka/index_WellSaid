@@ -7,6 +7,7 @@ import {
   Languages,
   Mic,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { useI18n } from "../../lib/i18n";
 
@@ -16,10 +17,15 @@ const RecordButton = () => {
   const router = useRouter();
   const { t } = useI18n();
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push("/record-session");
+  };
+
   return (
     <TouchableOpacity
       style={styles.recordButton}
-      onPress={() => router.push("/record-session")}
+      onPress={handlePress}
       activeOpacity={0.85}
       accessibilityRole="button"
       accessibilityLabel="Record session"
@@ -52,6 +58,11 @@ export default function TabLayout() {
           borderTopWidth: 1,
           paddingTop: 8,
           height: Platform.OS === "ios" ? 88 : 64,
+        },
+      }}
+      screenListeners={{
+        tabPress: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         },
       }}
     >

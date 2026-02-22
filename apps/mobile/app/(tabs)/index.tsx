@@ -12,6 +12,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Text } from "../../components/AccessibleText";
+import MarkdownText from "../../components/MarkdownText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -28,8 +29,8 @@ import {
   ArrowRight,
   Settings,
   X,
-  ShieldAlert,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
@@ -209,6 +210,7 @@ export default function HomeScreen() {
 
   const handlePromptClick = (prompt: string) => {
     if (chatLoading) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setInputText("");
     const userMsg: ChatMessage = { role: "user", content: prompt };
     setMessages((prev) => [...prev, userMsg]);
@@ -239,6 +241,7 @@ export default function HomeScreen() {
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text || chatLoading) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setInputText("");
     const userMsg: ChatMessage = { role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
@@ -308,7 +311,7 @@ export default function HomeScreen() {
                 <View style={{ flex: 1 }} />
                 <TouchableOpacity
                   style={styles.settingsBtn}
-                  onPress={() => router.push("/(tabs)/settings")}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/(tabs)/settings"); }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel="Settings"
@@ -326,7 +329,7 @@ export default function HomeScreen() {
               {appointments.length > 0 && (
                 <TouchableOpacity
                   style={styles.appointmentBanner}
-                  onPress={() => router.push("/(tabs)/health")}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/(tabs)/health"); }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`${appointments.length} upcoming appointments`}
@@ -403,7 +406,7 @@ export default function HomeScreen() {
               <View style={styles.quickActions}>
                 <TouchableOpacity
                   style={styles.quickBtn}
-                  onPress={() => router.push("/record-note")}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/record-note"); }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel="Record health note"
@@ -413,7 +416,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickBtn}
-                  onPress={() => router.push("/schedule-call")}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/schedule-call"); }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel="Schedule appointment"
@@ -423,7 +426,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickBtn}
-                  onPress={() => router.push("/(tabs)/documents")}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/(tabs)/documents"); }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel="Scan document"
@@ -433,22 +436,13 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                style={styles.emergencyBtn}
-                onPress={() => router.push("/emergency")}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t("emergency.title")}
-              >
-                <ShieldAlert size={20} color="#fff" />
-                <Text style={styles.emergencyBtnText}>{t("emergency.title")}</Text>
-              </TouchableOpacity>
+
             </>
           ) : (
             <View style={styles.chatMessages}>
               <TouchableOpacity
                 style={styles.newChatBtn}
-                onPress={() => { setMessages([]); setTypingIndex(null); }}
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setMessages([]); setTypingIndex(null); }}
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel="New conversation"
@@ -477,15 +471,12 @@ export default function HomeScreen() {
                         style={styles.chatText}
                         onFinish={() => setTypingIndex(null)}
                       />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.chatText,
-                          isUser && { color: "#fff" },
-                        ]}
-                      >
+                    ) : isUser ? (
+                      <Text style={[styles.chatText, { color: "#fff" }]}>
                         {msg.content}
                       </Text>
+                    ) : (
+                      <MarkdownText>{msg.content}</MarkdownText>
                     )}
                   </View>
                 );
@@ -789,20 +780,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sendBtnDisabled: { opacity: 0.3 },
-  emergencyBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: "#c0392b",
-  },
-  emergencyBtnText: {
-    fontSize: 15,
-    fontFamily: "DMSans_600SemiBold",
-    color: "#fff",
-  },
 });

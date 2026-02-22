@@ -21,11 +21,14 @@ import {
   FileText,
   Plus,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
 import { fetchWithCache } from "../../lib/cache";
 import SegmentedControl from "../../components/SegmentedControl";
+import TravelProfile from "../../components/TravelProfile";
+import NearbyProviders from "../../components/NearbyProviders";
 
 type Appointment = {
   id: string;
@@ -163,14 +166,14 @@ export default function HealthScreen() {
   const upcoming = appointments.filter((a) => a.status === "upcoming");
   const past = appointments.filter((a) => a.status !== "upcoming");
 
-  const TABS = [t("health.appointments"), t("health.notes"), t("health.sessions"), t("health.actions")];
+  const TABS = [t("health.appointments"), t("health.notes"), t("health.sessions"), t("health.actions"), t("health.travel")];
 
   const renderAppointment = ({ item }: { item: Appointment }) => {
     const statusStyle = STATUS_STYLES[item.status] ?? STATUS_STYLES.upcoming;
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push(`/appointment/${item.id}`)}
+        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/appointment/${item.id}`); }}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={item.title}
@@ -217,7 +220,7 @@ export default function HealthScreen() {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push(`/health-note/${item.id}`)}
+        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/health-note/${item.id}`); }}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={item.title}
@@ -250,7 +253,7 @@ export default function HealthScreen() {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push(`/session/${item.id}`)}
+        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/session/${item.id}`); }}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={item.title}
@@ -314,7 +317,7 @@ export default function HealthScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <Text style={styles.screenTitle}>{t("health.title")}</Text>
       <View style={styles.segmentWrapper}>
-        <SegmentedControl tabs={TABS} active={tab} onChange={setTab} />
+        <SegmentedControl tabs={TABS} active={tab} onChange={(i) => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setTab(i); }} />
       </View>
 
       {tab === 0 && (
@@ -335,7 +338,7 @@ export default function HealthScreen() {
           />
           <TouchableOpacity
             style={styles.fab}
-            onPress={() => router.push("/schedule-call")}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/schedule-call"); }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Schedule appointment"
@@ -363,7 +366,7 @@ export default function HealthScreen() {
           />
           <TouchableOpacity
             style={styles.fab}
-            onPress={() => router.push("/record-note")}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/record-note"); }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Record health note"
@@ -405,6 +408,15 @@ export default function HealthScreen() {
             />
           }
         />
+      )}
+
+      {tab === 4 && (
+        <View style={{ flex: 1 }}>
+          <TravelProfile />
+          <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+            <NearbyProviders />
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

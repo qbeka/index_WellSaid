@@ -12,7 +12,7 @@ const isHeavier = (a: string, b: string): boolean => {
 };
 
 export const Text = React.forwardRef<RNText, TextProps>(({ style, ...props }, ref) => {
-  const { highLegibility, fontScale, lineHeightScale, fontWeight } = useAccessibility();
+  const { highLegibility, fontScale, lineHeightScale, fontWeight, letterSpacing } = useAccessibility();
 
   if (!highLegibility) {
     return <RNText ref={ref} style={style} {...props} />;
@@ -34,6 +34,10 @@ export const Text = React.forwardRef<RNText, TextProps>(({ style, ...props }, re
   const originalWeight = flat?.fontWeight ?? "400";
   if (!isHeavier(originalWeight, fontWeight)) {
     scaled.fontWeight = fontWeight;
+  }
+
+  if (letterSpacing > 0) {
+    scaled.letterSpacing = (flat?.letterSpacing ?? 0) + letterSpacing;
   }
 
   return <RNText ref={ref} style={[style, scaled]} {...props} />;

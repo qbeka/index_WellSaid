@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Check,
   Phone,
+  Plane,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "nav.home", icon: Home },
   { href: "/conversation", labelKey: "nav.recordVisit", icon: ClipboardPen },
   { href: "/translate", labelKey: "nav.translate", icon: Languages },
+  { href: "/travel", labelKey: "nav.travel", icon: Plane },
   { href: "/health-notes", labelKey: "nav.healthNotes", icon: FileText },
   { href: "/appointments", labelKey: "nav.appointments", icon: Calendar },
   { href: "/sessions", labelKey: "nav.pastSessions", icon: MessageSquare },

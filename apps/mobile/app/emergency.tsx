@@ -33,20 +33,21 @@ export default function EmergencyScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.back(); return; }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("care_circle_phone")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile?.care_circle_phone) {
+      const phone = profile?.care_circle_phone?.trim();
+      if (error || !phone) {
         Alert.alert(t("common.error"), t("emergency.notConfigured"), [
           { text: "OK", onPress: () => router.back() },
         ]);
         return;
       }
 
-      setCarePhone(profile.care_circle_phone);
+      setCarePhone(phone);
       await startRecording();
     };
     init();

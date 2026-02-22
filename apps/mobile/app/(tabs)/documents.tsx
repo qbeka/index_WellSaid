@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { useI18n } from "../../lib/i18n";
 import { supabase } from "../../lib/supabase";
@@ -131,6 +132,7 @@ If fields are not applicable, use empty arrays or null.`,
   };
 
   const handleCamera = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
@@ -149,6 +151,7 @@ If fields are not applicable, use empty arrays or null.`,
   };
 
   const handleGallery = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const { status } =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -234,7 +237,7 @@ If fields are not applicable, use empty arrays or null.`,
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => router.push(`/document/${item.id}`)}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/document/${item.id}`); }}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={item.title}

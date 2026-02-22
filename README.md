@@ -1,116 +1,190 @@
 # WellSaid
 
-**Understanding your health shouldn't be a privilege.**
+## A Language Barrier Shouldn't Be Life-Threatening
 
-**WellSaid** is a healthcare copilot that manages an entire doctor's visit lifecycle for you. Ensuring that language and memory don't get in the way of you receiving the best care available. Everyone deserves to know what is going on with them medically, and language should not be getting in the way of that.  
+When my father had a heart attack, the emergency room was already chaotic. But the real danger wasn’t just his heart; it was the struggle to grasp understanding. My dad only speaks Albanian, and as the doctors asked him countless questions about his symptoms and history, he couldn't find the words to respond. Luckily, I was there to step in to translate everything. Had I not been there to bridge that gap, the outcome would have been a delayed response or worse. In these situations, you need all the time you can get.
 
----
+This isn’t just my family’s story; it’s a systemic failure. We found that patients with limited English proficiency are nearly twice as likely to suffer physical harm from medical errors compared to English-speaking patients.
 
-## Our Motivation Behind WellSaid
+When communication breaks down in tense moments, the consequences are measurable and severe:
 
-As children of immigrants, many of us have seen our parents or grandparents struggle to understand their medical situations. The issue is usually not a lack of education, but a language barrier. When someone cannot fully understand their doctor, diagnosis, or medical report, it becomes much harder to trust the healthcare system. That fear and uncertainty is very real in many immigrant communities.
+- Low health literacy leads to 68% more misinterpretations of prescriptions.
+- Patients with language barriers have 11% to 14% higher odds of hospital readmission when professional interpretation is missing.
+- Communication errors are the root cause of 59% of serious adverse events in clinical settings.
 
-As healthcare continues to rely more on technology, especially digital medical reporting, accessibility becomes even more important. Yet many of these tools are not designed with elderly users, non-English speakers, or people with low digital confidence in mind. If healthcare technology is meant to improve care, it must also be built in a way that includes everyone.
+For my dad, being unable to speak the native language in the ER was a life-threatening problem. A misunderstood instruction or a missed detail in discharge paperwork is often the cause of a manageable recovery turning into a critical return to the ER.
 
-This isn't just something a few people deal with and the stats prove it:
+## Introducing WellSaid
 
-- **82%** of older adults say the healthcare system is not prepared for the growing and changing needs of an aging population.
-- LEP (limited English proficiency) patients are much more likely to experience physical harm in adverse events: **49.1%** of adverse events involving LEP patients caused physical harm vs **29.5%** for English-speaking patients.
-- Low health literacy is linked to major medication misunderstanding: in one systematic review, **68%** of people with low health literacy misinterpreted medication schedules, vs **23%** in the high-literacy group.
-- Language discordance is associated with higher readmission risk: a meta-analysis found adult patients with language-discordant care had **11%** higher odds of hospital readmission. In studies that did not specify any interpreter use, odds were **14%** higher.
-- Communication problems are a root cause in **59%** of serious adverse events.
-- Cognitive impairment compounds engagement barriers: in a study of 493 older adults, moderate cognitive impairment was linked to being **4.07x** more likely to feel uncomfortable asking doctors questions and **5.34x** more likely to delay care due to embarrassment.
+We created a healthcare tool designed to manage your entire doctor’s visit, from booking to long-term care, ensuring that language and memory are never barriers to health. WellSaid records and explains visits, turning confusing medical language into clear next steps in the patient's preferred language. WellSaid also manages the logistics of the before, during, and after stages of appointments so nothing falls through the cracks. By transforming paperwork and documents into easily understood data, families don't have to rely solely on memory and can protect their dignity.
 
-> Sources:
-> 1. [The Growing Demand for Age-Friendly Care (John A. Hartford Foundation)](https://www.johnahartford.org/images/uploads/resources/The_Growing_Demand_for_Age-Friendly_Care_Report_FINAL.pdf)
-> 2. [Language Barriers and Patient Safety (PubMed)](https://pubmed.ncbi.nlm.nih.gov/29249189)
-> 3. [Cognitive Impairment Severity and Barriers to Healthcare Engagement Among Older Adults (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10286119/) -- A study of 493 older adults finding that those with moderate cognitive impairment were over 4x more likely to feel uncomfortable asking doctors questions and over 5x more likely to delay care due to embarrassment, highlighting how cognitive decline compounds barriers to meaningful healthcare engagement.
-> 4. [The Impact of Language Barriers on Patient Safety and Quality of Care (Bowen, 2015)](https://www.santefrancais.ca/wp-content/uploads/2018/11/SSF-Bowen-S.-Language-Barriers-Study-1.pdf) -- A comprehensive review finding that language barriers affect nearly every dimension of healthcare quality: from access and patient assessment to medication errors and adverse events. Patients with limited English proficiency face up to 49% of adverse events involving physical harm compared to 29.5% for English-speaking patients, and language barriers are linked to longer hospital stays, increased readmissions, and compromised informed consent.
+Our app is built specifically for the elderly and those with limited English proficiency. Our goal is to simplify the entire process a patient goes through so no family is left guessing.
 
----
+Finally, with our one-tap emergency mode and accessibility features, we ensure that everyone, regardless of language proficiency or tech literacy, can access WellSaid.
 
-## What is WellSaid
+## What it does
 
-WellSaid is a healthcare copilot designed to manage the entire doctor's visit lifecycle. It is built specifically for the elderly and those with limited English proficiency.
+WellSaid runs as both a native mobile app (iOS/Android via Expo) and a responsive web dashboard, so patients and families can manage care from anywhere.
 
-By capturing conversations, daily health notes, and complex documents, WellSaid turns data into formats that are easy to understand and act upon.
+### Record Visits
 
-**Understand and Translate:** Record and explain visits, turning confusing medical language into clear, structured next steps in the patient's preferred language.
+Capture visits or health concerns by voice, then automatically convert them into structured notes with clear action items.
 
-**Scheduling:** Manage the logistics of the before, during, and after stages of appointments so nothing falls through the cracks.
+### Grounded AI Assistant
 
-**Success:** Transform dense paperwork into data that doctors can easily use, so families don't have to rely on memory recall alone.
+Ask natural-language questions and get answers based strictly on your own records (notes, appointments, documents, and sessions). If the data is missing, the assistant says so clearly instead of guessing. Responses follow your selected language and support rich markdown formatting for readability.
 
-We aren't just building for efficiency. We are building to ensure that no son or daughter has to watch their parents struggle to be heard in a moment of crisis. WellSaid is about protecting dignity, reducing family stress, and ensuring that everyone knows exactly what comes next for their health, regardless of what language they speak.
+### Document Intelligence
 
----
+Upload or photograph labs, prescriptions, and care summaries. Vision models convert them into concise, searchable records that can be reused across the app.
 
-## Key Features
+### Appointments and Visit Workflow
 
-### Health Notes and Action Items
-Record a visit or health concern by voice. The app converts it into structured notes and automatically extracts follow-up tasks.
+Plan and manage appointments, then turn post-visit conversations into organized summaries with key topics and follow-up tasks. Users can store and maintain their primary hospital or clinic phone and extension directly in settings.
 
-### Context-Aware Chat Assistant
-Answers questions strictly using the user's own data (notes, appointments, documents, past sessions). If information isn't available, it asks for further information and doesn't try to guess. Respects the user's preferred language.
+### Travel Health Profile
 
-### Document Scanning
-Upload or photograph labs, prescriptions, or summaries. A vision LLM generates concise, searchable summaries stored for future reference.
+Fill out a pre-visit medical profile (blood type, allergies, conditions, medications, emergency contact, insurance, notes) and instantly translate it for international providers.
 
-### Appointments and Visit Flow
-Schedule and manage appointments. After visits, record or paste conversations to generate structured summaries with key topics and action items.
+### Nearby Providers
+
+With location permission, discover nearby hospitals, clinics, doctors, and pharmacies using OpenStreetMap data. View distance, address, and phone number, then save a provider contact as your active clinic number.
+
+### Emergency Mode (Mobile)
+
+Use one-tap emergency recording to capture urgent context fast. WellSaid transcribes the recording, generates a structured emergency note, saves it, and sends an alert to your Care Circle contact.
+
+### Care Circle
+
+Users can configure a trusted emergency contact in settings. Emergency mode sends alerts with transcript context so family or caregivers can respond quickly.
 
 ### Voice Everywhere
-Real-time speech-to-text for notes and chat, plus outbound call flows directly from the app.
 
-### Automatic Voice Agent Scheduling
-An AI voice agent can call clinics or hospitals to schedule, confirm, or reschedule appointments on the user's behalf.
+Support real-time speech-to-text for notes and interactions, plus outbound AI voice calls to clinics and hospitals for scheduling, confirmation, and rescheduling.
+
+### In-App Translation
+
+Translate conversations in-app, speak translated output aloud, copy translated text, and generate translated travel profiles for cross-language care scenarios.
 
 ### Multilingual Support
-UI and AI responses available in multiple languages, including English, Spanish, Mandarin, Cantonese, Korean, Japanese, Vietnamese, Tagalog, Arabic, Portuguese, and more.
 
----
+UI and AI experiences support many languages, including English, Spanish, Mandarin, Cantonese, Korean, Japanese, Vietnamese, Tagalog, Arabic, Portuguese, Hindi, Russian, French, German, Dutch, Albanian, and more.
 
-## Tech Stack
+### Accessibility Features
+
+- **High legibility mode:** Larger text (35% scale), increased line height (70%), bolder weight, and extra letter spacing.
+- **Haptic feedback (mobile):** Tactile feedback on buttons, toggles, tab switches, and high-priority actions.
+- **Accessible text system:** Centralized text scaling and weight adjustments when legibility mode is enabled.
+- **Calm visual language:** Simple layout, no gradients, and consistent contrast designed to reduce cognitive load.
+
+## How we built it
 
 ### Frontend
-- **Next.js 16** (App Router)
-- **React 19**
-- **Tailwind CSS**
-- **Motion** (animations)
 
-### Backend & Data
-- **Next.js API Routes**
-- **Supabase Auth**
-- **Supabase Postgres Database**
-  - Row Level Security (RLS) enabled
+- **Web:** Next.js 16 (App Router), React 19, Tailwind CSS, and Motion. The dashboard includes home, action items, health notes, appointments, sessions, visit workflow, documents, scan, translation, and travel.
+- **Mobile:** Expo (React Native) with tabs for Home, Health, Documents, Translate, and Settings, plus a central recording action. Emergency mode is accessible from Settings.
 
-### AI
-- **Vercel AI SDK**
-- **OpenAI**
-  - **GPT-4o-mini** for chat
-  - **GPT-4o** for vision
-- **Zod** schemas for structured outputs
+### Backend and data
+
+Next.js API routes and Supabase power auth and data storage for profiles, notes, tasks, sessions, appointments, documents, travel profiles, and care circle alerts. Row-level security (RLS) enforces per-user access boundaries.
+
+### AI layer
+
+Vercel AI SDK with OpenAI models (GPT-4o for chat and vision). Structured outputs with Zod are used for visit summaries, action extraction, note parsing, and document processing. Prompts enforce strict grounding rules and anti-hallucination behavior with user-specific context.
 
 ### Voice
-- **AssemblyAI** (streaming transcription)
-- **Vapi SDK** (outbound AI voice calls)
 
-### Mobile
-- **React Native (Expo)** for iOS and Android
+AssemblyAI handles streaming transcription for in-app voice interactions. Vapi powers outbound AI calls to clinics with configurable patient and assistant naming.
 
 ### Internationalization
-- **Language-aware UX**
-  - User language preferences propagate across the UI
-  - The same language preferences are passed into all LLM calls
 
----
+Shared language constants drive UI and model interactions. User language preferences propagate across product surfaces so summaries and assistant responses remain consistent.
 
-## Challenges
+## Challenges we ran into
 
-**Preventing AI Hallucination** -- Making sure the assistant only answers from the user's actual data, never guessing or making things up.
+### Keeping the chat grounded
 
-**Voice to Structure** -- Turning raw spoken conversations into clean, organized summaries without losing important clinical details.
+Strict prompt structure, explicit “do not invent” rules, and clear sectioning of user data were needed to keep the model within the provided context.
 
-**Live Transcription** -- Keeping speech-to-text fast and reliable while handling errors and pauses gracefully.
+### Voice to structured data
 
-**Document Accuracy** -- Scanning and summarizing medical documents without losing meaning or critical details.
+Separating clinical content from small talk and reliably producing schema-valid summaries required careful prompt design.
+
+### Real-time transcription UX
+
+Managing streaming transcripts, turn detection, token provisioning, and error states while keeping the UI responsive.
+
+### Document pipeline accuracy
+
+Balancing summary quality with token efficiency so vision outputs could feed reliably into future chat context.
+
+### Emergency mode UX
+
+Designing a one-tap flow that works under stress and reliably notifies the Care Circle, including fallback when the profile or phone number is missing.
+
+## Accomplishments we’re proud of
+
+- End-to-end voice and document pipelines that turn raw input into structured, queryable data
+- A grounded, context-aware chat assistant with explicit anti-hallucination rules
+- Structured LLM outputs across the app for reliability and simpler frontends
+- Multilingual support in both UI and AI
+- Vision-based document scanning integrated into conversational workflows
+- A unified experience on web and native mobile
+- Travel health profile with translation for use abroad
+- Location-based provider discovery and one-tap save to settings
+- Emergency mode with Care Circle alerts
+- Accessibility features (high legibility, haptics) designed for elderly and low-vision users
+- Markdown rendering in chat for clearer AI answers
+
+## What we learned
+
+### Product and AI design
+
+- Filtering clinical content needs explicit exclusion rules and speaker attribution
+- Clear prompt sectioning helps reduce hallucination
+- Structured outputs are more reliable than parsing free text in healthcare flows
+
+### Technical
+
+- Designing for elderly users increases complexity: simple controls (dropdowns, loading states) matter more
+- Accessibility and cognitive load directly affect architecture
+- Healthcare AI needs guardrails, consistency, and transparency; trust often matters more than model size
+
+### Broader
+
+- Many healthcare issues are coordination failures, not treatment failures
+- Document comprehension is a major source of frustration
+- Trust comes from reliability and clarity
+- Care involves patients, providers, and caregivers
+- AI should support, not replace, human relationships in care
+
+## What’s next for WellSaid
+
+### HIPAA compliance expansion
+
+Supabase can be run with HIPAA-compliant infrastructure. Next step is integrating fully HIPAA-compliant LLM providers with BAAs for end-to-end protection.
+
+### Deeper system integration
+
+Connect with hospital systems (e.g., FHIR, patient portals) for real-time appointment and result syncing.
+
+### Care Circle expansion
+
+Allow secure sharing of selected summaries or documents with family and care coordinators.
+
+### Proactive reminders
+
+Reminders and “questions to ask” based on upcoming appointments and recent notes.
+
+### Richer document support
+
+Multi-page PDF uploads with structured extraction of medications, labs, and timelines.
+
+### Accessibility and transparency
+
+Expand voice-first flows and add “show source” explanations for AI-generated answers.
+
+## Sources
+
+- https://www.santefrancais.ca/wp-content/uploads/2018/11/SSF-Bowen-S.-Language-Barriers-Study-1.pdf
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC10286119/

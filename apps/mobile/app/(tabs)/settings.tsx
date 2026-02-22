@@ -13,7 +13,8 @@ import {
 import { Text } from "../../components/AccessibleText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { LogOut, Phone, Globe, Eye } from "lucide-react-native";
+import { LogOut, Phone, Globe, Eye, ShieldAlert } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { Colors } from "../../lib/colors";
 import { supabase } from "../../lib/supabase";
 import LanguageSelect from "../../components/LanguageSelect";
@@ -68,6 +69,7 @@ export default function SettingsScreen() {
   }, []);
 
   const handleSave = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSaving(true);
     try {
       const {
@@ -89,6 +91,7 @@ export default function SettingsScreen() {
 
       setLang(language);
       setGlobalHighLegibility(highLegibility);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -99,6 +102,7 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(t("common.signOut"), t("settings.signOutConfirm"), [
       { text: t("common.cancel"), style: "cancel" },
       {
@@ -190,7 +194,7 @@ export default function SettingsScreen() {
             <Text style={styles.toggleDescription}>{t("settings.highLegibilityDesc")}</Text>
             <Switch
               value={highLegibility}
-              onValueChange={setHighLegibility}
+              onValueChange={(val) => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setHighLegibility(val); }}
               trackColor={{ false: Colors.border, true: Colors.accent }}
               thumbColor="#fff"
             />
@@ -228,6 +232,17 @@ export default function SettingsScreen() {
               {saved ? t("common.saved") : t("common.save")}
             </Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.emergencyBtn}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push("/emergency"); }}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t("emergency.title")}
+        >
+          <ShieldAlert size={20} color="#fff" />
+          <Text style={styles.emergencyBtnText}>{t("emergency.title")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -330,6 +345,20 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_400Regular",
     color: Colors.muted,
     marginRight: 12,
+  },
+  emergencyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: "#c0392b",
+  },
+  emergencyBtnText: {
+    fontSize: 15,
+    fontFamily: "DMSans_600SemiBold",
+    color: "#fff",
   },
   signOutBtn: {
     flexDirection: "row",
